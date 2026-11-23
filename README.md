@@ -39,9 +39,9 @@ Bir **Komuta Stack**'i: tek `komuta.yaml` ile Komuta'da, birkaç komutla yerelde
 
 ## Nedir
 
-km-ai, kendi projelerinin ve diğer Komuta Stack'lerinin üzerine oturan hazır bir **AI altyapısıdır**. Sıfırdan kurmak yerine tek servis olarak gelen parçalar: OpenAI uyumlu herhangi bir model (14 sağlayıcı, varsayılan OpenRouter) ve **araç çağırma**, web arama ve sayfa okuma, hafıza, zamanlanmış görevler, riskli işler için onay akışı, çok kanallı sohbet (Telegram, WhatsApp, Microsoft Teams, Slack, e-posta ve panelin kendi **Sohbet** sayfası: hangisinden yazarsan aynı AI, araç, hafıza ve zamanlayıcı çalışır) ve tüm araçları açan HTTP köprüsü ile **MCP** (n8n, başka stack'ler, Claude Desktop gibi istemciler). Kurulum ve yönetim, serviste yerleşik **yönetim panelinden** (`/ui`, Türkçe ve İngilizce) birkaç dakikada yapılır. Bir [Komuta Stack](https://komuta.io/tr/docs/stacks/stacks)'idir; [komuta-stack-kit](stack_kit/VENDORED.txt) üzerine kuruludur.
+km-ai, kendi projelerinin ve diğer Komuta Stack'lerinin üzerine oturan hazır bir **AI altyapısıdır**. Sıfırdan kurmak yerine tek servis olarak gelen parçalar: OpenAI uyumlu herhangi bir model (14 sağlayıcı, varsayılan OpenRouter) ve **araç çağırma**, web arama ve sayfa okuma, hafıza, zamanlanmış görevler, riskli işler için onay akışı, çok kanallı sohbet (Telegram, WhatsApp, Microsoft Teams, Slack, e-posta ve panelin kendi **Sohbet** sayfası: hangisinden yazarsan aynı AI, araç, hafıza ve zamanlayıcı çalışır) ve tüm araçları açan HTTP köprüsü ile **MCP** (n8n, başka stack'ler, Claude Desktop gibi istemciler). Kurulum ve yönetim, serviste yerleşik **yönetim panelinden** (`/ui`, Türkçe ve İngilizce) birkaç dakikada yapılır. Bir [Komuta Stack](https://komuta.io/tr/docs/stacks/stacks)'idir; [komuta-stack-kit](https://github.com/mustafazahter/komuta-stack-kit) üzerine kuruludur.
 
-**Asıl amaç basit bir sohbet asistanı olmak değil, AI altyapısı kurma sürecini kolaylaştırmaktır.** Sohbet asistanı olarak da çalışır, ama değeri başka yerde: projenizin işlevlerini [komuta-stack-kit](stack_kit/VENDORED.txt) ile `@tool` olarak yazarsınız, HTTP köprüsü ve MCP ile km-ai'ye bağlarsınız; AI bunları her kanaldan kullanır, para ya da geri alınamaz işleri kullanıcı onayına bağlar. Aynı altyapıyı kendi projelerinize veya diğer Komuta Stack'lerinize kolayca entegre edebilirsiniz. Nasıl yapıldığı: [Örnek kullanım senaryosu](#örnek-kullanım-senaryosu-kendi-projeni-km-aiye-bağla).
+**Asıl amaç basit bir sohbet asistanı olmak değil, AI altyapısı kurma sürecini kolaylaştırmaktır.** Sohbet asistanı olarak da çalışır, ama değeri başka yerde: projenizin işlevlerini [komuta-stack-kit](https://github.com/mustafazahter/komuta-stack-kit) ile `@tool` olarak yazarsınız, HTTP köprüsü ve MCP ile km-ai'ye bağlarsınız; AI bunları her kanaldan kullanır, para ya da geri alınamaz işleri kullanıcı onayına bağlar. Aynı altyapıyı kendi projelerinize veya diğer Komuta Stack'lerinize kolayca entegre edebilirsiniz. Nasıl yapıldığı: [Örnek kullanım senaryosu](#örnek-kullanım-senaryosu-kendi-projeni-km-aiye-bağla).
 
 ```mermaid
 flowchart LR
@@ -254,7 +254,7 @@ def ekle(metin: str) -> dict:
 
 ### Örnek kullanım senaryosu: kendi projeni km-ai'ye bağla
 
-Senaryo: küçük bir e-ticaret projen var. Müşteri "Siparişim nerede?" diye sorunca km-ai kargo bilgisini projenden çeksin; iade gibi riskli bir işlem yalnız senin onayınla yapılsın; kargo gecikince bir otomasyon tetiklensin. Hepsi [komuta-stack-kit](stack_kit/VENDORED.txt) ile tek dosyada yazılır ve çalışan hâli bu depoda: [`examples/ornek-stack/kargo_stack.py`](examples/ornek-stack/kargo_stack.py) (testli: `tests/test_example_stack.py`).
+Senaryo: küçük bir e-ticaret projen var. Müşteri "Siparişim nerede?" diye sorunca km-ai kargo bilgisini projenden çeksin; iade gibi riskli bir işlem yalnız senin onayınla yapılsın; kargo gecikince bir otomasyon tetiklensin. Hepsi [komuta-stack-kit](https://github.com/mustafazahter/komuta-stack-kit) ile tek dosyada yazılır ve çalışan hâli bu depoda: [`examples/ornek-stack/kargo_stack.py`](examples/ornek-stack/kargo_stack.py) (testli: `tests/test_example_stack.py`).
 
 **1. Projene araç ekle.** `@tool` ile bir Python fonksiyonu araç olur; tip ipuçlarından şema çıkar. Geri alınamaz işlere `confirm=True` ve `scope="admin"` (ya da `"trade"`) ver: km-ai bunları kullanıcı onayı olmadan asla çalıştırmaz.
 
@@ -381,6 +381,6 @@ Komuta'nın kendi belgeleri ve yazıları:
 
 <br><br>
 
-MIT · [komuta-stack-kit](stack_kit/VENDORED.txt) üzerinde · Katkılar hoş gelir
+MIT · [komuta-stack-kit](https://github.com/mustafazahter/komuta-stack-kit) üzerinde · Katkılar hoş gelir
 
 </div>
