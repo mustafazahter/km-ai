@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <meta name="color-scheme" content="light dark">
+  <title>Bileşenler · {title}</title>
+  <link rel="stylesheet" href="/ui/_kit/komuta-ui.css">
+  <script src="/ui/_kit/komuta-ui.js"></script>
+  <script src="components.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">İçeriğe geç</a>
+  <div class="app">
+    <aside class="sidebar" aria-label="Yan menü">
+      <a class="brand" href="/ui/">
+        <span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="/ui/_kit/icons.svg#mark"/></svg></span>
+        <span><span class="brand-name" data-title>Stack</span><span class="brand-sub" data-stack-version>&nbsp;</span></span>
+      </a>
+      <nav class="nav" aria-label="Ana menü">
+        <span class="eyebrow nav-label">Panel</span>
+        <a href="/ui/"><svg class="icon" aria-hidden="true"><use href="/ui/_kit/icons.svg#home"/></svg>Genel bakış</a>
+        <a href="/ui/components.html"><svg class="icon" aria-hidden="true"><use href="/ui/_kit/icons.svg#grid"/></svg>Bileşenler</a>
+        <a href="/ui/access.html"><svg class="icon" aria-hidden="true"><use href="/ui/_kit/icons.svg#shield"/></svg>Erişim</a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="row small muted"><svg class="icon" aria-hidden="true"><use href="/ui/_kit/icons.svg#user"/></svg><span data-user>—</span></div>
+        <button class="btn btn-ghost btn-sm" type="button" data-logout hidden>
+          <svg class="icon" aria-hidden="true"><use href="/ui/_kit/icons.svg#logout"/></svg>Çıkış yap
+        </button>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <span class="topbar-title">Bileşenler</span>
+        <div class="topbar-actions">
+          <span class="badge badge-outline hide-mobile" id="live"><span class="dot dot-success dot-live"></span>Canlı</span>
+          <button class="btn btn-ghost btn-icon" type="button" data-theme-toggle aria-pressed="false" aria-label="Tema">
+            <svg class="icon" aria-hidden="true"><use href="/ui/_kit/icons.svg#moon"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="content" id="main" tabindex="-1">
+        <div class="page-head">
+          <div>
+            <span class="eyebrow">Tasarım dili</span>
+            <h1>Bileşenler</h1>
+            <p>komuta-ui.css ve komuta-ui.js ile gelen parçalar. Yeni bir sayfa yazarken buradan kopyalayın.</p>
+          </div>
+        </div>
+
+        <section class="grid grid-2">
+          <div class="card">
+            <div class="card-head"><h2>Düğmeler</h2></div>
+            <div class="row">
+              <button class="btn btn-primary" type="button">Birincil</button>
+              <button class="btn" type="button">İkincil</button>
+              <button class="btn btn-ghost" type="button">Sade</button>
+              <button class="btn btn-danger" type="button">Tehlikeli</button>
+            </div>
+            <div class="row">
+              <button class="btn btn-primary" type="button">Devam et<span class="btn-trail" aria-hidden="true"><svg class="icon"><use href="/ui/_kit/icons.svg#arrow-right"/></svg></span></button>
+              <button class="btn btn-sm" type="button">Küçük</button>
+              <button class="btn btn-icon" type="button" aria-label="Yenile"><svg class="icon" aria-hidden="true"><use href="/ui/_kit/icons.svg#refresh"/></svg></button>
+              <button class="btn" type="button" disabled>Pasif</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>Rozetler ve durum</h2></div>
+            <div class="row">
+              <span class="badge">nötr</span>
+              <span class="badge badge-accent">bilgi</span>
+              <span class="badge badge-success"><span class="dot dot-success"></span>çalışıyor</span>
+              <span class="badge badge-danger"><span class="dot dot-danger"></span>durdu</span>
+              <span class="badge badge-outline">çerçeve</span>
+            </div>
+            <div class="segmented" role="group" aria-label="Aralık">
+              <button type="button" aria-pressed="true">24 saat</button>
+              <button type="button" aria-pressed="false">7 gün</button>
+              <button type="button" aria-pressed="false">30 gün</button>
+            </div>
+            <div class="callout"><svg class="icon" aria-hidden="true"><use href="/ui/_kit/icons.svg#info"/></svg><span>Bilgi kutusu: kısa ve tek cümle.</span></div>
+          </div>
+        </section>
+
+        <section class="grid grid-2">
+          <form class="card form" id="demo-form" novalidate>
+            <div class="card-head"><h2>Form</h2></div>
+            <div class="field">
+              <label for="f-name">Bot adı</label>
+              <input class="input" id="f-name" name="name" required placeholder="ör. haber-botu">
+              <span class="hint">Küçük harf ve tire.</span>
+              <span class="error-text" data-error-for="name"></span>
+            </div>
+            <div class="field">
+              <label for="f-model">Model</label>
+              <select class="select" id="f-model" name="model"><option>gpt-4o-mini</option><option>claude-haiku</option></select>
+            </div>
+            <label class="check"><input class="switch" type="checkbox" name="enabled" role="switch" checked> Etkin</label>
+            <div class="form-actions">
+              <button class="btn" type="reset">Temizle</button>
+              <button class="btn btn-primary" type="submit">Kaydet</button>
+            </div>
+          </form>
+          <div class="card">
+            <div class="card-head"><h2>Geri bildirim</h2></div>
+            <p class="muted">Bildirim ve onay penceresi <code>KUI.toast</code> ve <code>KUI.confirm</code> ile.</p>
+            <div class="row">
+              <button class="btn" type="button" id="demo-toast">Bildirim göster</button>
+              <button class="btn" type="button" id="demo-error">Hata göster</button>
+              <button class="btn btn-danger" type="button" id="demo-confirm">Onay iste</button>
+            </div>
+            <div class="stack-sm">
+              <div class="skeleton"></div>
+              <div class="skeleton"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card card-flush">
+          <div class="card-head"><h2>Tablo</h2><span class="badge badge-outline">3 satır</span></div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead><tr><th scope="col">Sembol</th><th scope="col">Yön</th><th scope="col" class="t-right">Lot</th><th scope="col" class="t-right">K/Z</th></tr></thead>
+              <tbody>
+                <tr><td class="t-mono">XAUUSD</td><td><span class="badge badge-accent">al</span></td><td class="t-right num">0.10</td><td class="t-right num">+12.40</td></tr>
+                <tr><td class="t-mono">EURUSD</td><td><span class="badge">sat</span></td><td class="t-right num">0.05</td><td class="t-right num">−3.10</td></tr>
+                <tr><td class="t-mono">US30</td><td><span class="badge badge-accent">al</span></td><td class="t-right num">0.01</td><td class="t-right num">+0.85</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <nav class="bottombar" aria-label="Alt menü">
+    <a href="/ui/"><svg class="icon icon-lg" aria-hidden="true"><use href="/ui/_kit/icons.svg#home"/></svg><span>Genel</span></a>
+    <a href="/ui/components.html"><svg class="icon icon-lg" aria-hidden="true"><use href="/ui/_kit/icons.svg#grid"/></svg><span>Bileşenler</span></a>
+    <a href="/ui/access.html"><svg class="icon icon-lg" aria-hidden="true"><use href="/ui/_kit/icons.svg#shield"/></svg><span>Erişim</span></a>
+  </nav>
+</body>
+</html>

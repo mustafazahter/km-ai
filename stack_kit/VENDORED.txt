@@ -1,0 +1,1 @@
+Vendored copy of stack_kit 1.0.0 (komuta-stack-kit). Do not edit here; change the kit and re-run scripts/sync-kit.sh.

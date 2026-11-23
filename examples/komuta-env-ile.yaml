@@ -1,0 +1,136 @@
+# ============================================================================
+#  ai-bot · bütün ayarlar Secret/ortam değişkeniyle
+# ============================================================================
+#  Yayından önce güvenli formda Secret'lar istenir; sihirbaz açıldığında hepsi dolu gelir;
+#  ortamdan gelen değer güvenilmez, her adım doğrulanana (test/onay) kadar bekler. Panelde bir değeri değiştirirsen ortam
+#  değerini ezer; 'Ortam değişkenine dön' ile geri alınır. UI_PASSWORD verildiği için
+#  kurulum kodu adımı yoktur (parola yalnız buradan değişir).
+#
+#  Kurulum: console.komuta.io/stacks/new -> Kaynak -> 'YAML yapıştır' -> Planı
+#  incele -> Yayınla. Sonra servisin Loglar sekmesinden 'Kurulum kodu'nu al ve
+#  https://<servis-adresi>/ui/ adresinde panel parolasını belirle; sihirbaz
+#  Telegram, sohbet, model ve aramayı sorar. Köprü/MCP/webhook varsayılan KAPALI.
+#
+#  Doldur: <proje-adi>, <git-baglanti-adi>, <kullanici>. Doğrula:
+#      python <stack-spec>/tools/validate_stack.py . --allow-placeholders
+#  Kurallar: stack-spec/docs/KOMUTA-YAML.md · Panel: docs/ARAYUZ.md
+# ============================================================================
+version: 1
+name: ai-bot
+
+target:
+  project: <proje-adi>            # panelde ÖNCEDEN oluşturulmuş proje
+  region: Germany-East
+  deploymentTarget: paas
+  connections:
+    git: <git-baglanti-adi>       # Komuta'daki Git bağlantısının ADI
+    registry: komuta
+
+apply:
+  prune: false
+  createMissingProject: false     # proje yoksa plan temiz hatayla dursun
+  maxParallel: 3
+
+secrets:
+  # BotFather'dan aldığın Telegram bot tokenı.
+  - name: bot-token
+    source: prompt
+    required: true
+  # Seçtiğin sağlayıcının API anahtarı (yerel sunucuda boş bırakılamaz: '-' yaz).
+  - name: llm-api-key
+    source: prompt
+    required: true
+  # Botu kullanabilecek sohbet kimlikleri, virgüllü (örn. 12345,-100678). Bota /id yaz.
+  - name: allowed-chat-ids
+    source: prompt
+    required: true
+  # Panel parolası (en az 10 karakter önerilir; kurulum kodu adımı atlanır).
+  - name: ui-password
+    source: prompt
+    required: true
+
+services:
+  - name: ai-bot
+    workload: service
+    source:
+      repository: https://github.com/<kullanici>/km-ai.git
+      branch: main
+    build:
+      strategy: dockerfile
+      dockerfile: Dockerfile
+      context: .
+    compute:
+      plan: dz-dev                # 0.5 CPU / 1 GiB, aylık ~9 USD
+    ports:
+      - name: http
+        containerPort: 8080
+        primary: true
+    network:
+      public: true
+    # İki kapı: önce Komuta girişi (servis Komuta'da "korumalı" görünür), sonra panel
+    # parolası (ilk açılışta günlükteki kurulum koduyla). signIn servisin TAMAMINA
+    # uygulanır: köprü/MCP/webhook açarsan dış çağıranlar (n8n, MCP istemcisi,
+    # TradingView) Komuta kapısında kalır. O zaman konsoldan/Komuta MCP'den
+    # /bridge/, /mcp, /hook/ yollarını girişsiz aç ya da examples/komuta-giris-kapali.yaml
+    # kullan. Gelecek: yol bazlı kural manifestte yazılabilince yalnız /ui korunacak
+    # (öneri: access.paths, docs/ARAYUZ.md).
+    access:
+      signIn: true
+    env:
+      - name: STACK_NAME
+        value: ai-bot
+      - name: LOG_LEVEL
+        value: info
+      - name: TZ
+        value: Europe/Istanbul
+      - name: DATA_DIR
+        value: /data
+      - name: PLUGINS_DIR
+        value: /app/plugins
+      - name: HTTP_HOST
+        value: 0.0.0.0
+      - name: HTTP_PORT
+        value: "8080"
+      - name: LLM_PROVIDER
+        value: openrouter          # openai | anthropic | gemini | xai | groq | deepseek | mistral | together | perplexity | ollama | lmstudio | vllm | custom
+      - name: LLM_BASE_URL
+        value: https://openrouter.ai/api/v1
+      - name: LLM_MODEL
+        value: deepseek/deepseek-v4.1-flash-1017
+      - name: SEARCH_PROVIDER
+        value: auto
+      - name: TELEGRAM_BOT_TOKEN
+        sensitive: true
+        valueFrom:
+          secret: bot-token
+      - name: LLM_API_KEY
+        sensitive: true
+        valueFrom:
+          secret: llm-api-key
+      - name: ALLOWED_CHAT_IDS
+        sensitive: true
+        valueFrom:
+          secret: allowed-chat-ids
+      - name: UI_PASSWORD
+        sensitive: true
+        valueFrom:
+          secret: ui-password
+    storage:
+      - name: ai-bot-data         # SQLite + panel ayar/sır dosyaları (izin 600)
+        mountPath: /data
+        plan: Small
+    health:
+      readiness:
+        type: httpGet
+        path: /health
+        port: 8080
+        initialDelaySeconds: 5
+        periodSeconds: 10
+      liveness:
+        type: httpGet
+        path: /health
+        port: 8080
+        initialDelaySeconds: 30
+        periodSeconds: 20
+    autoDeploy:
+      enabled: true

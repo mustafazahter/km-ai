@@ -1,0 +1,128 @@
+# ============================================================================
+#  ai-bot + mt5-trader köprüsü (iki ayrı Stack)
+# ============================================================================
+#  ai-bot'un AI'sı mt5-trader'ın araçlarını (mt5.buy, mt5.positions ...) görür. Para
+#  hareketi yapan her araç Telegram'da düğmeyle onaylanmadan ÇALIŞMAZ (docs/KOPRULER.md).
+#  Bu bağlantı ai-bot'tan DIŞARI doğrudur: ai-bot'un kendi köprüsü kapalı kalabilir ve
+#  Komuta girişi bir şeyi bozmaz. mt5-trader tarafında köprü açık ve /bridge/ girişsiz olmalı.
+#  SIRA: 1) mt5-trader'ı yayınla (network.public: true; stack/servis adlarını eşleştir).
+#        2) mt5-trader'ın köprü token'ını al; burada 'mt5-bridge-token' Secret'ı olarak gir.
+#  Kit iki parçayı (BRIDGE_MT5_URL + BRIDGE_MT5_TOKEN) kendisi birleştirir.
+#
+#  Kurulum: console.komuta.io/stacks/new -> Kaynak -> 'YAML yapıştır' -> Planı
+#  incele -> Yayınla. Sonra servisin Loglar sekmesinden 'Kurulum kodu'nu al ve
+#  https://<servis-adresi>/ui/ adresinde panel parolasını belirle; sihirbaz
+#  Telegram, sohbet, model ve aramayı sorar. Köprü/MCP/webhook varsayılan KAPALI.
+#
+#  Doldur: <proje-adi>, <git-baglanti-adi>, <kullanici>. Doğrula:
+#      python <stack-spec>/tools/validate_stack.py . --allow-placeholders
+#  Kurallar: stack-spec/docs/KOMUTA-YAML.md · Panel: docs/ARAYUZ.md
+# ============================================================================
+version: 1
+name: ai-bot
+
+target:
+  project: <proje-adi>            # panelde ÖNCEDEN oluşturulmuş proje
+  region: Germany-East
+  deploymentTarget: paas
+  connections:
+    git: <git-baglanti-adi>       # Komuta'daki Git bağlantısının ADI
+    registry: komuta
+
+apply:
+  prune: false
+  createMissingProject: false     # proje yoksa plan temiz hatayla dursun
+  maxParallel: 3
+
+secrets:
+  # mt5-trader'ın köprü token'ı.
+  - name: mt5-bridge-token
+    source: prompt
+    required: true
+
+services:
+  - name: ai-bot
+    workload: service
+    source:
+      repository: https://github.com/<kullanici>/km-ai.git
+      branch: main
+    build:
+      strategy: dockerfile
+      dockerfile: Dockerfile
+      context: .
+    compute:
+      plan: dz-dev                # 0.5 CPU / 1 GiB, aylık ~9 USD
+    ports:
+      - name: http
+        containerPort: 8080
+        primary: true
+    network:
+      public: true
+    # İki kapı: önce Komuta girişi (servis Komuta'da "korumalı" görünür), sonra panel
+    # parolası (ilk açılışta günlükteki kurulum koduyla). signIn servisin TAMAMINA
+    # uygulanır: köprü/MCP/webhook açarsan dış çağıranlar (n8n, MCP istemcisi,
+    # TradingView) Komuta kapısında kalır. O zaman konsoldan/Komuta MCP'den
+    # /bridge/, /mcp, /hook/ yollarını girişsiz aç ya da examples/komuta-giris-kapali.yaml
+    # kullan. Gelecek: yol bazlı kural manifestte yazılabilince yalnız /ui korunacak
+    # (öneri: access.paths, docs/ARAYUZ.md).
+    access:
+      signIn: true
+    env:
+      - name: STACK_NAME
+        value: ai-bot
+      - name: LOG_LEVEL
+        value: info
+      - name: TZ
+        value: Europe/Istanbul
+      - name: DATA_DIR
+        value: /data
+      - name: PLUGINS_DIR
+        value: /app/plugins
+      - name: HTTP_HOST
+        value: 0.0.0.0
+      - name: HTTP_PORT
+        value: "8080"
+      # Bütün ayarlar kurulum sihirbazından (/ui) girilir; zorunlu Secret yok. İstersen
+      # ortam değişkeni/Secret olarak da verebilirsin: sihirbaz onları dolu gösterir
+      # (öncelik: panel > ortam > varsayılan). Örnek: examples/komuta-env-ile.yaml
+      #   - name: TELEGRAM_BOT_TOKEN      (Secret)     - name: ALLOWED_CHAT_IDS (Secret)
+      #   - name: LLM_PROVIDER / LLM_BASE_URL / LLM_MODEL / LLM_API_KEY (Secret)
+      #   - name: UI_PASSWORD (Secret: kurulum kodu adımını atlar)
+      # Komuta kimliğiyle giriş (kimlik iletme konsolda açıksa): UI_AUTH=auto veya komuta,
+      # UI_ALLOWED_HOSTS=<servis-adresi>. Köprüyü açılışta açmak: BRIDGE_ENABLED=true.
+      # Anahtarsız duckduckgo GÜVENİLMEZ olabilir (bulut sunucularından gelen otomatik
+      # istekleri reddedebilir). Tavily/Brave/SearXNG: sihirbaz veya
+      # examples/komuta-arama-saglayicili.yaml
+      - name: SEARCH_PROVIDER
+        value: auto
+      # Köprü parça 1/2: mt5-trader servisinin adresi (Komuta çözer)
+      - name: BRIDGE_MT5_URL
+        valueFrom:
+          service:
+            stack: mt5-trader
+            name: mt5-trader
+            property: url
+      # Köprü parça 2/2: mt5-trader'ın token'ı
+      - name: BRIDGE_MT5_TOKEN
+        sensitive: true
+        valueFrom:
+          secret: mt5-bridge-token
+    storage:
+      - name: ai-bot-data         # SQLite + panel ayar/sır dosyaları (izin 600)
+        mountPath: /data
+        plan: Small
+    health:
+      readiness:
+        type: httpGet
+        path: /health
+        port: 8080
+        initialDelaySeconds: 5
+        periodSeconds: 10
+      liveness:
+        type: httpGet
+        path: /health
+        port: 8080
+        initialDelaySeconds: 30
+        periodSeconds: 20
+    autoDeploy:
+      enabled: true

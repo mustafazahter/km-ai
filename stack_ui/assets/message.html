@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <title>{{heading}} · {{title}}</title>
+  <link rel="stylesheet" href="/ui/_kit/komuta-ui.css">
+  <script src="/ui/_kit/komuta-ui.js"></script>
+</head>
+<body data-kui-public>
+  <main class="auth">
+    <section class="card auth-card" aria-labelledby="msg-title">
+      <div class="brand">
+        <span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="/ui/_kit/icons.svg#shield"/></svg></span>
+        <span>
+          <span class="brand-name brand-name-lg" id="msg-title">{{heading}}</span>
+          <span class="brand-sub">{{title}}</span>
+        </span>
+      </div>
+      <p class="muted t-center">{{message}}</p>
+      {{details}}
+    </section>
+  </main>
+</body>
+</html>

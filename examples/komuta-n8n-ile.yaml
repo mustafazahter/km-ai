@@ -1,0 +1,130 @@
+# ============================================================================
+#  ai-bot + n8n (köprü ve webhook manifestten AÇIK)
+# ============================================================================
+#  İki yön:
+#   * ai-bot -> n8n: olaylar (ai.reply, schedule.fired, memory.*) imzalı POST ile n8n
+#     Webhook düğümüne gider. İmza: X-Stack-Signature = HMAC(secret, timestamp + '.' + gövde).
+#   * n8n -> ai-bot: HTTP Request düğümü ile POST https://<ai-bot-adresi>/bridge/call/ai.ask
+#     Authorization: Bearer <BRIDGE_TOKEN>, gövde {"args": {"prompt": "...", "notify": true}}.
+#     BRIDGE_TOKEN: Komuta panelinde Secret 'bridge-token' (ya da ai-bot panelinden üret).
+#  Köprü manifestten açık (BRIDGE_ENABLED=true); Komuta girişi YOK, yoksa n8n kapıda kalır.
+#  Hazır örnekler: ai-bot paneli > Köprü ve entegrasyonlar. Ayrıntı: docs/KOPRULER.md
+#
+#  Kurulum: console.komuta.io/stacks/new -> Kaynak -> 'YAML yapıştır' -> Planı
+#  incele -> Yayınla. Sonra servisin Loglar sekmesinden 'Kurulum kodu'nu al ve
+#  https://<servis-adresi>/ui/ adresinde panel parolasını belirle; sihirbaz
+#  Telegram, sohbet, model ve aramayı sorar. Köprü/MCP/webhook varsayılan KAPALI.
+#
+#  Doldur: <proje-adi>, <git-baglanti-adi>, <kullanici>. Doğrula:
+#      python <stack-spec>/tools/validate_stack.py . --allow-placeholders
+#  Kurallar: stack-spec/docs/KOMUTA-YAML.md · Panel: docs/ARAYUZ.md
+# ============================================================================
+version: 1
+name: ai-bot
+
+target:
+  project: <proje-adi>            # panelde ÖNCEDEN oluşturulmuş proje
+  region: Germany-East
+  deploymentTarget: paas
+  connections:
+    git: <git-baglanti-adi>       # Komuta'daki Git bağlantısının ADI
+    registry: komuta
+
+apply:
+  prune: false
+  createMissingProject: false     # proje yoksa plan temiz hatayla dursun
+  maxParallel: 3
+
+secrets:
+  # /bridge ve /mcp için erişim anahtarı: Komuta üretir (panelden de üretilebilir).
+  - name: bridge-token
+    source: generate
+    length: 48
+  # Giden webhook imza sırrı; n8n'de aynı değerle doğrularsın.
+  - name: n8n-webhook-secret
+    source: prompt
+    required: true
+
+services:
+  - name: ai-bot
+    workload: service
+    source:
+      repository: https://github.com/<kullanici>/km-ai.git
+      branch: main
+    build:
+      strategy: dockerfile
+      dockerfile: Dockerfile
+      context: .
+    compute:
+      plan: dz-dev                # 0.5 CPU / 1 GiB, aylık ~9 USD
+    ports:
+      - name: http
+        containerPort: 8080
+        primary: true
+    network:
+      public: true
+    # Komuta girişi YOK: link herkese açık, panel kendi parolasıyla korunur (ilk açılışta
+    # günlükteki kurulum kodu). Makineler (n8n, MCP, webhook) kapıda kalmaz; köprü
+    # yüzeyleri yine de varsayılan KAPALI ve token'lıdır.
+    env:
+      - name: STACK_NAME
+        value: ai-bot
+      - name: LOG_LEVEL
+        value: info
+      - name: TZ
+        value: Europe/Istanbul
+      - name: DATA_DIR
+        value: /data
+      - name: PLUGINS_DIR
+        value: /app/plugins
+      - name: HTTP_HOST
+        value: 0.0.0.0
+      - name: HTTP_PORT
+        value: "8080"
+      # Bütün ayarlar kurulum sihirbazından (/ui) girilir; zorunlu Secret yok. İstersen
+      # ortam değişkeni/Secret olarak da verebilirsin: sihirbaz onları dolu gösterir
+      # (öncelik: panel > ortam > varsayılan). Örnek: examples/komuta-env-ile.yaml
+      #   - name: TELEGRAM_BOT_TOKEN      (Secret)     - name: ALLOWED_CHAT_IDS (Secret)
+      #   - name: LLM_PROVIDER / LLM_BASE_URL / LLM_MODEL / LLM_API_KEY (Secret)
+      #   - name: UI_PASSWORD (Secret: kurulum kodu adımını atlar)
+      # Komuta kimliğiyle giriş (kimlik iletme konsolda açıksa): UI_AUTH=auto veya komuta,
+      # UI_ALLOWED_HOSTS=<servis-adresi>. Köprüyü açılışta açmak: BRIDGE_ENABLED=true.
+      # Anahtarsız duckduckgo GÜVENİLMEZ olabilir (bulut sunucularından gelen otomatik
+      # istekleri reddedebilir). Tavily/Brave/SearXNG: sihirbaz veya
+      # examples/komuta-arama-saglayicili.yaml
+      - name: SEARCH_PROVIDER
+        value: auto
+      # Köprüyü açılışta aç (panelden de açılıp kapanır; BRIDGE_ENABLED verilince bu değer geçerlidir)
+      - name: BRIDGE_ENABLED
+        value: "true"
+      - name: BRIDGE_TOKEN
+        sensitive: true
+        valueFrom:
+          secret: bridge-token
+      # Giden webhook parça 1/2: n8n Webhook düğümünün üretim adresi
+      - name: WEBHOOKS_OUT_URL
+        value: https://<n8n-adresi>/webhook/ai-bot
+      # Giden webhook parça 2/2: imza sırrı
+      - name: WEBHOOKS_OUT_SECRET
+        sensitive: true
+        valueFrom:
+          secret: n8n-webhook-secret
+    storage:
+      - name: ai-bot-data         # SQLite + panel ayar/sır dosyaları (izin 600)
+        mountPath: /data
+        plan: Small
+    health:
+      readiness:
+        type: httpGet
+        path: /health
+        port: 8080
+        initialDelaySeconds: 5
+        periodSeconds: 10
+      liveness:
+        type: httpGet
+        path: /health
+        port: 8080
+        initialDelaySeconds: 30
+        periodSeconds: 20
+    autoDeploy:
+      enabled: true

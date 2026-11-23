@@ -1,0 +1,19 @@
+---
+name: add-channel
+description: Add a new chat channel to km-ai (next to Telegram, WhatsApp, Microsoft Teams, Slack and e-mail) - inbound route with signature check, allow-list, reply sending, panel form, setup-wizard entry, system prompt, tests. Use when the user wants km-ai reachable from another messaging service (Discord, Signal, SMS, a custom webhook...).
+---
+
+# Yeni kanal ekle
+
+Her kanal `src/ai_bot/channels/<ad>.py` içinde bir `Channel` alt sınıfıdır; izin listesi, tekrar eleme, hız sınırı, parçalama, onay kodu ve komutlar `channels/base.py`'dedir. Şablon olarak `channels/slack.py` (imzalı webhook) ve `channels/email_channel.py` (yoklayan, onaysız kanal) kullanılır. Kuralları gevşetme: kanal kapalıyken adresler 404, **boş izin listesi = kimse yazamaz**, imza gövde ayrıştırılmadan önce ve sabit zamanlı karşılaştırmayla doğrulanır, gövde ve sır log'a yazılmaz.
+
+1. **Sınıf** (`channels/<ad>.py`): sınıf alanları `name`, `title`, `prefix` (env öneki), `required` (zorunlu ayar adları), `max_chunk`, `paths = {"events": "/channels/<ad>/events"}` (gelen adres; yoklayan kanalda boş), `fields` (panel formu: `{"name", "label", "kind": secret|text|list|bool, "hint", "required"}`). Yöntemler: `allow_setting()` (izin listesi ayarının adı), `normalise()` / `valid_entry()` / `entry_hint()` (listeye girilen kimlikler), `register(router)` (gelen yol: `self.require_enabled()`, `read_body`, imza, ayrıştırma, `self.accept(...)` → `Inbound`, ardından `self.spawn(inbound)`; webhook hemen `200` döner), `send(ctx, text)` (tek parça gönder; `send_text` parçalamayı yapar), `test()` (kimseye yazmadan belirteç/kimlik denetimi, hata için `ChannelError(kod, mesaj)`), `target_for(chat_id, external)` (botun ilk yazdığı mesajlar için yanıt bağlamı; bilinmiyorsa `None`). Gönderen kanıtlanamıyorsa (e-posta gibi) `can_confirm = False`: o kanalda onay isteyen araçlar reddedilir ve değiştiren komutlar çalışmaz (`src/ai_bot/commands.py`).
+2. **Ayar şeması** (`channels/schema.py`): `<AD>_ENABLED` (bool, varsayılan `False`), kimlik/adres ayarları, `<AD>_ALLOWED_*` (liste, desen ve `max_length` ile), gizli değerleri `SECRET_NAMES`'e ekle (yalnız yazılır). Güvenlik kilidi olan hiçbir şey şemaya girmez.
+3. **Kayıt:** `channels/manager.py` içindeki `for cls in (WhatsApp, Teams, Slack, Email)` demetine sınıfı ve import'u ekle.
+4. **Sistem istemi:** `agent.py` `PROMPT_CHANNELS` demetine adı ekle; `config.py` (`system_prompt_<ad>` alanı + `SYSTEM_PROMPT_<AD>` env), `runtime_config.py` (`Setting("SYSTEM_PROMPT_<AD>", ...)`, `GROUP_OF`, `FIELD_MAP`).
+5. **Panel:** `ui/pages/channels.js` içindeki `MARKS` (ikon; yoksa `ui/icons.svg`'ye ekle), `TAGLINES`, `GUIDES` (adım adım kurulum rehberi), `GROUPS` (form bölümleri), `PATH_LABELS`, `PROMPT_NAME`, `PROMPT_HINT`, `GUIDE_TIME`; `ui/help.js` içinde `channel-<ad>` yardım konusu; sihirbaz için `ui/pages/setup.js` `CHANNEL_INFO` ve `panel.py` `CHANNEL_CHOICES`. Metinler Türkçe yazılır, İngilizcesi `ui/i18n-en.js`'e eklenir (`python scripts/i18n_extract.py --missing`).
+6. **Test** (`tests/test_channels_<ad>.py`): `tests/test_channels_env.py` düzeneğini kullan (`chenv`; ağ `Provider` ile taklit edilir, gerçek ağa çıkma). En az: kapalıyken 404; imzasız/yanlış imzalı istek reddedilir; izin listesi boşken ya da gönderen listede değilken mesaj AI'ya gitmez; izinli gönderen yanıt alır; tekrar eden mesaj bir kez işlenir; `/hafiza` gibi komut AI'ya gitmeden çalışır (`tests/test_channel_commands.py` kalıbı); panelde sır geri dönmez (`tests/test_channels_panel.py` kalıbı).
+   ```bash
+   .venv/bin/python -m pytest -q tests/test_channels_<ad>.py tests/test_channels_panel.py tests/test_channel_commands.py
+   ```
+7. **Belge:** `docs/KANALLAR.md` (özet tablosu, güvenlik modeli, ayarlar), `README.md` ve `README.en.md` (kanal listeleri), `docs/ARAYUZ.md`.

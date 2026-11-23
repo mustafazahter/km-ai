@@ -1,0 +1,57 @@
+---
+name: add-ui-page
+description: Add a page to this stack's admin UI (/ui) with the shared komuta-ui design language, a protected /ui/api endpoint and a test. Use when the user wants a new screen, form or status view in the panel.
+---
+
+# Yönetim arayüzüne sayfa ekle
+
+Altyapı `stack_ui`'dedir (vendor edilmiş `stack_ui/`, `stack_kit/` yanında); ayrıntı `komuta-stack-ui` reposunda `docs/UI.md`.
+
+1. Bu stack'in sayfa klasörünü bulun (`<static_dir>`; her stack'te farklı olabilir):
+   ```bash
+   grep -rn "mount_ui(" --include='*.py' --exclude-dir=stack_kit --exclude-dir=stack_ui --exclude-dir=.venv .
+   ```
+   `static_dir=` ile verilen yol `<static_dir>`'dir (çoğunlukla `Path(__file__).parent / "ui"` gibi paket içi bir yol). `mount_ui` hiç yoksa çekirdeğe ekleyin: `mount_ui(app, stack, static_dir=<yol>)`. Sayfa tek dosyada `#/rota` ile yönleniyorsa (hash routing) yeni dosya yerine yeni rota ekleyin.
+   Yeni dosya için iskeleti kopyalayın:
+   ```bash
+   cp stack_ui/assets/example/index.html <static_dir>/<sayfa>.html
+   ```
+   `<main class="content">` içini değiştirin; bağlantıyı hem `.nav` hem `.bottombar` içine ekleyin; `<script src="example.js" defer>` yerine `<script src="<sayfa>.js" defer>`.
+2. **Satır içi `<script>` ve `style="..."` yazmayın**: CSP engeller. Stil için `komuta-ui.css` sınıfları (`.card`, `.btn`, `.field`, `.table`, `.badge`…), kod için ayrı `.js`. Metni `KUI.el(...)`/`textContent` ile ekleyin, `innerHTML` kullanmayın.
+3. Veri ucu (`APIRouter`; kimlik ve CSRF `mount_ui` tarafından eklenir):
+   ```python
+   from fastapi import APIRouter, Depends
+   from stack_ui import UIUser, current_user
+
+   router = APIRouter()
+
+   @router.get("/<ad>")
+   async def list_items(user: UIUser = Depends(current_user)):
+       return {"ok": True, "items": []}
+   ```
+   ve mevcut `mount_ui(...)` çağrısının `api_router=[...]` listesine ekleyin (`mount_ui` uygulama başına bir kez çağrılır; ikinci çağrı hata verir). Tarayıcıda: `KUI.api("/<ad>")`, yazma: `KUI.api("/<ad>", {method: "POST", body: {...}})` (CSRF başlığı otomatik).
+4. Para hareketi / geri alınamaz düğme: `KUI.confirm({title, body, danger: true})` ve sunucuda `confirm=True` araç (`stack.call` → `needs_confirmation` → `confirm_id`). Gizli değerleri asla geri döndürmeyin (`SecretStore.describe` yalnız `…son4` verir).
+5. Test (`tests/test_ui_<ad>.py`):
+   ```python
+   from fastapi.testclient import TestClient
+   from stack_kit import BridgeConfig, Stack, create_app
+   from stack_ui import UIConfig, mount_ui
+
+   STATIC_DIR = "<static_dir>"   # adım 1'deki yol
+
+   def test_page_api():
+       stack = Stack("test")
+       app = create_app(stack, config=BridgeConfig(token="test-token-0123456789abcdef"), load_plugins=False)
+       mount_ui(app, stack, static_dir=STATIC_DIR, api_router=router, config=UIConfig(auth="off", allow_insecure=True))
+       with TestClient(app) as c:
+           assert c.get("/ui/<sayfa>.html").status_code == 200
+           assert c.get("/ui/api/<ad>").json()["ok"] is True
+   ```
+   ```bash
+   python -m pytest -q tests
+   ```
+6. Elle bakmak için parola moduyla çalıştırın (`UI_AUTH=password UI_PASSWORD=<8+ karakter>`), `/ui/` açın; 375 px genişlikte yatay kaydırma olmamalı.
+
+Yerleşim, uçları doğrulama (FastAPI rota listesi yerine `TestClient` ile çağırma), birleşik servis: `komuta-stack-ui` reposu `docs/UI.md` §10–12.
+
+Tasarım kuralları: vurgu platin/çelik mavisi; altın, kahve, turuncu, bej, mor yok; serif ve soldan çizgili kart yok; dış CDN/yazı tipi yok.

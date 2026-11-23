@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <title>Giriş · Yönetim</title>
+  <link rel="stylesheet" href="/ui/_kit/komuta-ui.css">
+  <link rel="stylesheet" href="/ui/_kit/auth-vars.css">
+  <script src="/ui/_kit/komuta-ui.js"></script>
+  <script src="/ui/_kit/login.js" defer></script>
+</head>
+<body data-kui-public>
+  <main class="auth">
+    <form class="card auth-card auth-card-login form" method="post" action="/ui/login" id="login-form" novalidate>
+      <div class="brand">
+        <span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="/ui/_kit/icons.svg#lock"/></svg></span>
+        <span>
+          <span class="brand-name brand-name-lg">Yönetim paneli</span>
+          <span class="brand-sub">Admin panel · sign in to continue</span>
+        </span>
+      </div>
+      <div class="callout callout-danger" id="login-error" role="alert" hidden>
+        <svg class="icon" aria-hidden="true"><use href="/ui/_kit/icons.svg#alert"/></svg>
+        <span id="login-error-text">Parola yanlış. / Wrong password.</span>
+      </div>
+      <input type="hidden" name="next" id="login-next" value="/ui/">
+      <div class="field">
+        <label for="password">Parola / Password</label>
+        <input class="input" id="password" name="password" type="password" autocomplete="current-password" required autofocus>
+      </div>
+      <button class="btn btn-primary btn-block" type="submit">
+        Giriş yap
+        <span class="btn-trail" aria-hidden="true"><svg class="icon"><use href="/ui/_kit/icons.svg#arrow-right"/></svg></span>
+      </button>
+      <p class="hint t-center">{{hint}}</p>
+    </form>
+  </main>
+</body>
+</html>

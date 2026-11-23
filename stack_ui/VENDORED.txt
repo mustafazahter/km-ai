@@ -1,0 +1,2 @@
+Vendored copy of stack_ui 1.0.0 (komuta-stack-ui). Do not edit here; change stack-ui and re-run scripts/sync-ui.sh.
+Needs stack_kit/ next to it and the cryptography package for UI_AUTH=komuta.

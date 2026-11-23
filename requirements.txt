@@ -1,0 +1,8 @@
+# Çalışma zamanı bağımlılıkları (stack_kit dahil; kit yalnız bunları ister).
+fastapi>=0.110
+uvicorn>=0.27
+httpx>=0.27
+pydantic>=2.6
+tzdata>=2024.1
+# Yönetim arayüzü UI_AUTH=komuta: x-komuta-identity (ES256 JWT) doğrulaması. Yoksa /ui kapalı kalır.
+cryptography>=42

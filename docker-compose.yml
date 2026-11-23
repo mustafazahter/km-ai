@@ -1,0 +1,16 @@
+# Yerel çalıştırma: cp .env.example .env  (ya da scripts/setup.sh)  ->  docker compose up --build
+services:
+  ai-bot:
+    build: .
+    env_file:
+      - .env            # .env repoya girmez (.gitignore)
+    environment:
+      DATA_DIR: /data
+    ports:
+      - "8080:8080"     # /health · /ui (parola) · /bridge, /mcp, /hook varsayılan KAPALI (panelden aç)
+    volumes:
+      - ai-bot-data:/data   # named volume imajdaki sahipliği (uid 1000) alır
+      # Bind mount istersen:  - ./data:/data   ve önce bir kez:  chown 1000:1000 ./data
+    restart: unless-stopped
+volumes:
+  ai-bot-data:

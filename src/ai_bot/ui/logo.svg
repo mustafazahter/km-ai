@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="km-ai">
+  <defs>
+    <linearGradient id="tile" x1="14" y1="8" x2="82" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f7f9fb"/>
+      <stop offset="0.55" stop-color="#e3e8ee"/>
+      <stop offset="1" stop-color="#bcc6d2"/>
+    </linearGradient>
+    <linearGradient id="ink" x1="22" y1="26" x2="62" y2="70" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4a76a8"/>
+      <stop offset="1" stop-color="#223f61"/>
+    </linearGradient>
+    <linearGradient id="gloss" x1="48" y1="4" x2="48" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="88" height="88" rx="26" fill="url(#tile)"/>
+  <rect x="4.75" y="4.75" width="86.5" height="86.5" rx="25.3" fill="none" stroke="#8d9bad" stroke-opacity="0.45" stroke-width="1.5"/>
+  <path d="M30 4h36c14 0 26 12 26 26v8C70 30 28 28 4 38v-8C4 16 16 4 30 4z" fill="url(#gloss)" opacity="0.7"/>
+  <!-- command prompt chevron -->
+  <path d="M27 31l23 17-23 17" fill="none" stroke="url(#ink)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- cursor -->
+  <rect x="55" y="61" width="19" height="9" rx="4.5" fill="#223f61"/>
+  <!-- spark: the AI -->
+  <path d="M69 20c1.4 6.6 3.4 8.6 10 10-6.6 1.4-8.6 3.4-10 10-1.4-6.6-3.4-8.6-10-10 6.6-1.4 8.6-3.4 10-10z" fill="#3a6a9f"/>
+  <circle cx="79" cy="45" r="2.6" fill="#7b9cc2"/>
+</svg>
