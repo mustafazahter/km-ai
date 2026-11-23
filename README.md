@@ -379,6 +379,8 @@ Komuta'nın kendi belgeleri ve yazıları:
 
 <div align="center">
 
+<br><br>
+
 MIT · [komuta-stack-kit](stack_kit/VENDORED.txt) üzerinde · Katkılar hoş gelir
 
 </div>

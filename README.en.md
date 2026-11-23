@@ -367,6 +367,8 @@ From Komuta itself:
 
 <div align="center">
 
+<br><br>
+
 MIT · built on komuta-stack-kit · contributions welcome
 
 </div>
