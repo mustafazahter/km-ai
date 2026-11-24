@@ -662,10 +662,10 @@ body.wizard-mode .content { min-height: 100dvh; }
   .chat.is-history-hidden .chat-body { grid-template-columns: minmax(0, 1fr); }
   .chat.is-history-hidden .chat-history { display: none; }
 }
-.chat.is-history-open .chat-bar .chat-fresh, .chat.is-history-open .chat-bar .chat-model { display: none; }
 @media (max-width: 1100px) {
   .chat-body { grid-template-columns: minmax(0, 1fr); }
   .chat-history { display: none; }
   .chat.is-history-open .chat-history { display: flex; }
   .chat.is-history-open .chat-main { display: none; }
+  .chat.is-history-open .chat-bar .chat-fresh, .chat.is-history-open .chat-bar .chat-model { display: none; }
 }

@@ -1142,6 +1142,8 @@ window.AIB_I18N_EN = {
  "Henüz kayıtlı sohbet yok.": "No saved chats yet.",
  "Sohbeti sil": "Delete chat",
  "Sohbetler": "Chats",
+ "Bu sohbette bir yanıt hâlâ hazırlanıyor.": "A reply is still being prepared in this chat.",
+ "Sohbet bulunamadı.": "Chat not found.",
  "Bugün": "Today",
  "Dün": "Yesterday",
  "Bu hafta": "This week",

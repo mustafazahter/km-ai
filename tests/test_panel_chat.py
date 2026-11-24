@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import time
 
+from fastapi.testclient import TestClient
+
 from tests.conftest import CHAT
 from tests.fakes import reply, tool_call
 from contextlib import contextmanager
@@ -286,6 +288,38 @@ def test_taint_is_kept_with_the_stored_conversation(tmp_path):
         conv = c.get(f"/ui/api/chat/conversations/{first['conversation']}").json()
         assert conv["tainted"] is True
         say(c, "devam", conversation=first["conversation"])  # the browser says nothing, the server remembers
+
+
+def test_stored_taint_makes_the_next_turn_ask_a_human(tmp_path):
+    e = Env(tmp_path, llm_script=[reply("okudum"), reply(None, [tool_call("memory_remember", {"content": "kalıcı bilgi"})]), reply("bitti")])
+    with session(e) as c:
+        first = say(c, "web'den okudum", tainted=True)
+        r = c.post("/ui/api/chat/send", json={"message": "hatırla", "conversation": first["conversation"]})  # no taint flag from the browser
+        turn, since, kinds = r.json()["turn"], 0, []
+        end = time.time() + 5
+        while time.time() < end:
+            d = c.get(f"/ui/api/chat/turn/{turn}", params={"since": since}).json()
+            since = d["next"]
+            for ev in d["events"]:
+                kinds.append(ev["type"])
+                if ev["type"] == "confirm":
+                    c.post("/ui/api/chat/confirm", json={"turn": turn, "id": ev["id"], "approve": False})
+            if d["status"] != "running":
+                break
+            time.sleep(0.03)
+        assert "confirm" in kinds and e.ai.db.count_all_memories() == 0
+
+
+def test_nothing_is_kept_when_the_panel_runs_without_sign_in(tmp_path):
+    from stack_ui import UIConfig
+    e = Env(tmp_path, ui_config=UIConfig(auth="off", allow_insecure=True), llm_script=[reply("açık")])
+    with TestClient(e.app) as c:
+        c.get("/ui/")
+        c.headers["X-CSRF-Token"] = c.cookies.get("skui_csrf") or ""
+        done = say(c, "herkes aynı kullanıcı")
+        assert done["status"] == "done" and done["conversation"] == ""
+        assert c.get("/ui/api/chat/conversations").json()["items"] == []
+    assert e.ai.db._one("SELECT COUNT(*) AS n FROM panel_conversations")["n"] == 0
 
 
 def test_old_conversations_are_dropped_beyond_the_limit_and_all_can_be_deleted(tmp_path, monkeypatch):

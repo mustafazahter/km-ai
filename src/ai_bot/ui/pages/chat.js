@@ -12,7 +12,7 @@
     "Komuta cloud platformu hakkında web'de ara ve özetle"
   ];
   // the open conversation survives navigation between panel pages; everything else lives on the server
-  var store = window.__aibChat = window.__aibChat || { history: [], model: "", chatId: "", entries: [], conversation: "", tainted: false };
+  var store = window.__aibChat = window.__aibChat || { history: [], model: "", chatId: "", entries: [], conversation: "", tainted: false, turn: "" };
 
   // ------------------------------------------------------------ tiny, safe markdown (DOM nodes only)
   function inline(text) {
@@ -60,7 +60,7 @@
 
   function render(main) {
     var info = null;
-    var models = [], busyTurn = null, pollTimer = null, stopped = false;
+    var models = [], busyTurn = null, pollTimer = null, stopped = false, working = false;
     A.onLeave(function () { stopped = true; clearTimeout(pollTimer); });
 
     var log = h("div", { class: "chat-log", role: "log", "aria-live": "polite", "aria-label": "Konuşma" });
@@ -137,7 +137,7 @@
     }
     function drawHistory() {
       KUI.clear(histList);
-      histEmpty.hidden = convs.length > 0; histClear.parentNode.hidden = convs.length === 0;
+      histEmpty.hidden = convs.length > 0; histClear.parentNode.hidden = convs.length === 0; histClear.disabled = working;
       histCount.textContent = convs.length ? String(convs.length) : "";
       var group = null, ul = null;
       convs.forEach(function (c) {
@@ -152,6 +152,7 @@
           h("span", { class: "chat-history-time small muted", text: A.relTime(c.updated) }));
         var del = h("button", { type: "button", class: "btn btn-ghost btn-icon btn-sm chat-history-del", "aria-label": KUI.t("Sohbeti sil") + ": " + c.title,
           title: KUI.t("Sohbeti sil"), onclick: function () { removeConversation(c); } }, A.icon("trash"));
+        open.disabled = working; del.disabled = working;
         histList.appendChild(h("li", { class: "chat-history-item" + (c.id === store.conversation ? " is-active" : "") }, open, del));
       });
     }
@@ -159,12 +160,12 @@
       return KUI.api("/chat/conversations").then(function (r) { convs = r.items || []; drawHistory(); }).catch(function () { /* the chat still works without the list */ });
     }
     function startNew() {
-      if (busyTurn) return;
+      if (working) return;
       store.history = []; store.entries = []; store.tainted = false; store.conversation = "";
       drawEmpty(); drawHistory(); shell.classList.remove("is-history-open"); input.focus();
     }
     function openConversation(id) {
-      if (busyTurn) return;
+      if (working) return;
       KUI.api("/chat/conversations/" + encodeURIComponent(id)).then(function (c) {
         store.conversation = c.id; store.tainted = c.tainted === true;
         store.entries = c.messages.map(function (m) { return { role: m.role, content: m.content }; });
@@ -178,7 +179,7 @@
       });
     }
     function removeConversation(c) {
-      if (busyTurn) return;
+      if (working) return;
       KUI.confirm({ title: KUI.t("Sohbet silinsin mi?"), body: c.title + " " + KUI.t("kalıcı olarak silinir, geri alınamaz."), danger: true, confirmText: KUI.t("Sil") }).then(function (ok) {
         if (!ok) return;
         KUI.api("/chat/conversations/" + encodeURIComponent(c.id), { method: "DELETE" }).then(function () {
@@ -188,7 +189,7 @@
       });
     }
     function removeAll() {
-      if (busyTurn) return;
+      if (working) return;
       KUI.confirm({ title: KUI.t("Tüm sohbetler silinsin mi?"), body: KUI.t("Kayıtlı bütün panel sohbetleri kalıcı olarak silinir, geri alınamaz."), danger: true, confirmText: KUI.t("Hepsini sil") }).then(function (ok) {
         if (!ok) return;
         KUI.api("/chat/conversations", { method: "DELETE" }).then(function () { startNew(); return loadHistory(); }).catch(function (e) { KUI.errorToast(e); loadHistory(); });
@@ -197,13 +198,14 @@
 
     // ------------------------------------------------------------ one turn
     function setBusy(on) {
+      working = on;
       send.hidden = on; stop.hidden = !on; input.disabled = false; fresh.disabled = on; freshSide.disabled = on; histClear.disabled = on;
       KUI.$all(".chat-history-open, .chat-history-del", history).forEach(function (b) { b.disabled = on; });
-      if (!on) { busyTurn = null; input.focus(); }
+      if (!on) { busyTurn = null; store.turn = ""; input.focus(); }
     }
     function submit() {
       var text = input.value.trim();
-      if (!text || busyTurn) return;
+      if (!text || working) return;
       if (!info || !info.configured) { KUI.toast("Önce Kurulum'dan yapay zekâ sağlayıcısını ayarlayın.", { kind: "danger" }); return; }
       if (!store.entries.length) KUI.clear(log);
       input.value = ""; grow();
@@ -215,7 +217,7 @@
       var context = store.conversation ? undefined : store.history.slice();   // a stored conversation brings its own context
       KUI.api("/chat/send", { method: "POST", body: { message: text, model: combo.value() || undefined, history: context, conversation: store.conversation || undefined, chat_id: store.chatId || undefined, tainted: store.tainted === true || undefined } })
         .then(function (r) {
-          busyTurn = r.turn;
+          busyTurn = r.turn; store.turn = r.turn;   // survives leaving the page: the turn is picked up again on return
           store.history.push({ role: "user", content: text });
           poll(r.turn, 0, work, {});
         }).catch(function (e) {
@@ -229,6 +231,12 @@
           }
           finish(work, null, e.message);
         });
+    }
+    function resume() {
+      var work = h("div", { class: "msg-work", "aria-live": "polite" }, h("span", { class: "typing", "aria-label": "Yanıt hazırlanıyor" }, h("i"), h("i"), h("i")));
+      log.appendChild(work); scrollDown();
+      setBusy(true); busyTurn = store.turn;
+      poll(store.turn, 0, work, {});
     }
     function finish(work, answer, error) {
       work.remove();
@@ -327,7 +335,10 @@
       }
       syncToggle();
     });
-    if (narrow.addEventListener) narrow.addEventListener("change", syncToggle);
+    if (narrow.addEventListener) narrow.addEventListener("change", function () {
+      if (!narrow.matches) shell.classList.remove("is-history-open");
+      syncToggle();
+    });
     histClear.addEventListener("click", removeAll);
     chatSel.addEventListener("change", function () { store.chatId = chatSel.value; });
 
@@ -354,7 +365,8 @@
         if (!store.chatId) store.chatId = String(d.chats[0].id);
       }
       buildCombo();
-      if (store.conversation) openConversation(store.conversation); else replay();
+      if (store.turn) { replay(); resume(); }   // left the page mid-turn: show it still working
+      else if (store.conversation) openConversation(store.conversation); else replay();
       if (!d.configured) log.appendChild(A.callout("danger", h("span", null, "Yapay zekâ sağlayıcısı henüz ayarlı değil. ", h("a", { href: "#/kurulum/llm", text: "Kurulumu tamamlayın" }), ".")));
       KUI.api("/llm/models", { method: "POST", body: {} }).then(function (r) { models = r.models || []; if (combo) combo.setModels(models, r.recent || []); }).catch(function () { /* manual entry still works */ });
     }).catch(function (e) { log.appendChild(A.errorBox(e)); });

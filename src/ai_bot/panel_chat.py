@@ -283,7 +283,7 @@ def build_router(panel: "Panel", err, body_of) -> APIRouter:
     # ------------------------------------------------------------ stored conversations
     def history_off(user: UIUser) -> bool:
         """With the panel protection switched off every visitor is the same 'user': nothing is kept or listed."""
-        return user.method == "unprotected"
+        return user.method in ("unprotected", "off")
 
     @r.get("/chat/conversations")
     async def conversations(user: UIUser = Depends(current_user)):

@@ -430,7 +430,7 @@ a.card:hover { text-decoration: none; transform: translateY(-1px); box-shadow: 0
 .auth-card { width: min(var(--kui-auth-card-width, 440px), 100%); max-width: 100%; min-width: 0; padding: var(--s-7) var(--s-6) var(--s-6); border-radius: var(--r-xl); gap: var(--s-5); overflow-wrap: anywhere; }
 .auth-card-login { width: min(var(--kui-login-card-width, var(--kui-auth-card-width, 440px)), 100%); }
 .auth-card-setup { width: min(var(--kui-setup-card-width, var(--kui-auth-card-width, 480px)), 100%); }
-.auth-card-compact { width: min(var(--kui-compact-card-width, 600px), 100%); gap: var(--s-4); }
+.auth-card-compact { width: min(var(--kui-compact-card-width, var(--kui-setup-card-width, 600px)), 100%); gap: var(--s-4); }
 .auth-card-compact .auth-steps { margin: 0; }
 .auth-card-compact .hint { margin: 0; }
 .field-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-4); }
