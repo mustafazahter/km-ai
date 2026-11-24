@@ -9,7 +9,7 @@ km-ai tarafında (.env veya Komuta ortamı):
     BRIDGE_KARGO_TOKEN=kargo-token-change-me-0123456789
 
 Sonra herhangi bir kanaldan: "1042 numaralı siparişim nerede?" ya da "1042'yi iade et" (onay ister).
-Belge: README.md > Örnek kullanım senaryosu, docs/GELISTIRICI.md.
+Belge: README.md > Örnek kullanım senaryosu, docs/DEVELOPER.md.
 """
 
 import sys

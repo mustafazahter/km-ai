@@ -130,7 +130,7 @@ def test_komuta_mode_without_identity_shows_guide(tmp_path):
         assert r.status_code == 403 and r.json()["error"]["code"] in ("ui_unauthorized", "ui_disabled")
         page = c.get("/ui/")
         assert page.status_code == 403
-        assert "<details" in page.text and "docs/ARAYUZ.md" in page.text  # kit page + our setup_hint
+        assert "<details" in page.text and "docs/tr/ADMIN-UI.md" in page.text  # kit page + our setup_hint
         assert "Content-Security-Policy" in page.headers
         # forged convenience headers are ignored
         r = c.get("/ui/api/overview", headers={"x-komuta-user-id": "1", "x-komuta-user-email": "a@b.example"})

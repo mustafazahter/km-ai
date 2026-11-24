@@ -1,6 +1,6 @@
 """Settings read from the environment (12-factor). Secrets are registered for log redaction.
 
-Order of precedence (documented in docs/ARAYUZ.md): a value saved in the admin UI (``/ui``,
+Order of precedence (documented in docs/ADMIN-UI.md): a value saved in the admin UI (``/ui``,
 ``DATA_DIR/ui-settings.db`` / ``ui-secrets.json``) wins over the environment variable, which wins
 over the default here. ``ai_bot.runtime_config.load_settings`` applies the UI layer on top of
 :meth:`Settings.from_env`; only the whitelisted, safe settings can be overridden there.

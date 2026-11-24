@@ -3,26 +3,26 @@ name: add-memory-policy
 description: Change what ai-bot remembers or refuses to remember (system prompt rules, secret filters, limits, how many memories go into context) with tests. Use when the user says the bot remembers too much/too little or must never store some kind of data.
 ---
 
-# Hafıza politikasını değiştir
+# Change the memory policy
 
-Neyin hatırlanacağına AI karar verir; kurallar üç yerdedir:
+The AI decides what to remember; the rules live in three places:
 
-| Ne | Nerede |
+| What | Where |
 |---|---|
-| AI'ya ne zaman hatırlayıp unutacağını öğreten metin | `src/ai_bot/agent.py` → `SYSTEM_PROMPT` içindeki `HAFIZA / MEMORY` bölümü |
-| Kesin red (AI istese de kaydedilmez): token, kart, şifre kalıpları | `src/ai_bot/memory.py` → `BLOCK_PATTERNS` |
-| Sınırlar | env: `MEMORY_MAX_PER_CHAT` (500), `MEMORY_CONTEXT_LIMIT` (her mesaja eklenen anı sayısı, 6); kod: `MAX_MEMORY_CHARS` |
+| The text that teaches the AI when to remember and forget | `src/ai_bot/agent.py` → the `HAFIZA / MEMORY` section in `SYSTEM_PROMPT` |
+| Hard refusal (never stored even if the AI asks): token, card, password patterns | `src/ai_bot/memory.py` → `BLOCK_PATTERNS` |
+| Limits | env: `MEMORY_MAX_PER_CHAT` (500), `MEMORY_CONTEXT_LIMIT` (how many memories are added to each message, 6); code: `MAX_MEMORY_CHARS` |
 
-Adımlar:
-1. Yasak veri türü eklemek için `BLOCK_PATTERNS`'e regex ekle (örn. IBAN):
+Steps:
+1. To add a forbidden data type, add a regex to `BLOCK_PATTERNS` (e.g. IBAN):
    ```python
    re.compile(r"\bTR\d{2}(?:\s?\d{4}){5}\s?\d{2}\b", re.IGNORECASE),
    ```
-2. Davranış değişikliği için `SYSTEM_PROMPT`'taki maddeleri düzenle; kısa ve emir kipinde yaz. Ek talimatı kod değiştirmeden vermek için `SYSTEM_PROMPT_EXTRA` env'i de var.
-3. Test ekle (`tests/test_memory.py::test_secrets_are_not_stored` parametre listesine yeni örnek) ve koş:
+2. For a behaviour change, edit the items in `SYSTEM_PROMPT`; write them short and in the imperative. To give extra instructions without changing code there is also the `SYSTEM_PROMPT_EXTRA` env.
+3. Add a test (a new example in the parameter list of `tests/test_memory.py::test_secrets_are_not_stored`) and run:
    ```bash
    .venv/bin/python -m pytest tests/test_memory.py tests/test_agent.py
    ```
-4. Kullanıcıya dönük anlatımı `docs/HAFIZA.md`'de güncelle.
+4. Update the user-facing description in `docs/MEMORY.md` and `docs/tr/MEMORY.md`.
 
-Asla: hafızayı sohbetler arası paylaştırma (her sorgu `chat_id` ile süzülür), sır kalıplarını gevşetme.
+Never: share memory across chats (every query is filtered by `chat_id`), loosen the secret patterns.

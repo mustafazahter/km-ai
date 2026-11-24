@@ -1,3 +1,5 @@
+[English](../SCHEDULING.md) · Türkçe
+
 # Zamanlanmış görevler
 
 > EN: Persistent scheduler (SQLite) with cron, relative ("in 10 minutes", "10 dakika sonra") and ISO times in `TZ`.

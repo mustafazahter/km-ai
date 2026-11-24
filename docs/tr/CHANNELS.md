@@ -1,3 +1,5 @@
+[English](../CHANNELS.md) · Türkçe
+
 # Mesajlaşma kanalları (WhatsApp, Microsoft Teams, Slack, e-posta)
 
 Botla Telegram'ın yanında WhatsApp, Microsoft Teams, Slack ve e-postadan da konuşabilirsiniz. Aynı yapay zekâ, aynı araçlar, aynı hafıza ve görev zamanlayıcı çalışır. **Her kanal varsayılan olarak kapalıdır**; kapalıyken gelen adresleri `404` döner.
@@ -30,7 +32,7 @@ Bir mesajın yolu: sağlayıcı imzası doğrulanır → izin listesi, tekrar (d
 
 ## Komutlar
 
-Her kanalda `/hafiza`, `/gorevler`, `/model`, `/sifirla`, `/help` ve eklediğin komutlar çalışır (Telegram dahil). `/komut` ya da `!komut` yazılır; Slack `/...` mesajını kendi komutu saydığı için orada `!hafiza` kullan. Onay isteyen komutlar kodla onaylanır (`EVET 123456`). **E-postada** gönderen doğrulanamadığından yalnız okuma komutları çalışır; değiştiren komutlar "bu kanalda kapalı" yanıtı alır. Kendi komutunu ekleme: [GELISTIRICI.md](GELISTIRICI.md#komut-ekleme-her-kanalda). Uygulama: `src/ai_bot/commands.py`, testler: `tests/test_channel_commands.py`.
+Her kanalda `/hafiza`, `/gorevler`, `/model`, `/sifirla`, `/help` ve eklediğin komutlar çalışır (Telegram dahil). `/komut` ya da `!komut` yazılır; Slack `/...` mesajını kendi komutu saydığı için orada `!hafiza` kullan. Onay isteyen komutlar kodla onaylanır (`EVET 123456`). **E-postada** gönderen doğrulanamadığından yalnız okuma komutları çalışır; değiştiren komutlar "bu kanalda kapalı" yanıtı alır. Kendi komutunu ekleme: [DEVELOPER.md](DEVELOPER.md#komut-ekleme-her-kanalda). Uygulama: `src/ai_bot/commands.py`, testler: `tests/test_channel_commands.py`.
 
 Öncelik her yerde aynıdır: **panelde kaydedilen > ortam değişkeni > varsayılan**. Panelden kaydedilen değerler yeniden başlatma gerektirmez. Sırlar yalnız yazılır; kaydedildikten sonra panel yalnız `…son4` gösterir.
 

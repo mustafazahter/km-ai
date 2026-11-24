@@ -1,17 +1,17 @@
 # plugins/
 
-> EN: Drop `*.py` files here. Every `@tool` becomes callable by the AI, over `/bridge` and over MCP.
+> Drop `*.py` files here. Every `@tool` becomes callable by the AI, over `/bridge` and over MCP.
 > Money-moving tools must be `confirm=True` (+ `scope="trade"`): the AI cannot run them without a Telegram button press.
 
-Bu klasördeki `*.py` dosyaları açılışta yüklenir (`_` ile başlayanlar atlanır). Her `@tool`:
+`*.py` files in this folder are loaded at startup (files starting with `_` are skipped). Every `@tool`:
 
-- AI'ya görünür (`ornek.zar` → `ornek_zar`),
-- `POST /bridge/call/ornek.zar` ve MCP `ornek_zar` ile çağrılabilir.
+- is visible to the AI (`ornek.zar` → `ornek_zar`),
+- can be called with `POST /bridge/call/ornek.zar` and as the MCP tool `ornek_zar`.
 
-| Dosya | Ne |
+| File | What |
 |---|---|
-| `ornek_arac.py` | En küçük örnek (`ornek.zar`) ve onaylı araç örneği (`ornek.bagis`, `confirm=True`, `scope="trade"`) |
-| `haber_ozet.py` | Gerçek örnek: RSS başlıkları (`haber.basliklar`), SSRF korumalı `app.fetcher` ile |
+| `ornek_arac.py` | The smallest example (`ornek.zar`) and a confirmed-tool example (`ornek.bagis`, `confirm=True`, `scope="trade"`) |
+| `haber_ozet.py` | A real example: RSS headlines (`haber.basliklar`), through the SSRF-safe `app.fetcher` |
 
-Kurallar: para hareketi → `confirm=True`; dış istek → `get_stack().app_ai_bot.fetcher`; hata → `ToolError`.
-Adım adım: `../docs/GELISTIRICI.md` ve `.claude/skills/add-ai-tool`.
+Rules: money movement → `confirm=True`; outbound request → `get_stack().app_ai_bot.fetcher`; error → `ToolError`.
+Step by step: `../docs/DEVELOPER.md` and `.claude/skills/add-ai-tool`.

@@ -8,7 +8,7 @@
   ``GET /v1/models``, Ollama ``/api/tags``) so the panel can offer a searchable list.
 
 Base URLs marked ``verified=False`` are from the providers' public docs but were not called from
-this repository (no keys); see docs/LLM-SAGLAYICILAR.md.
+this repository (no keys); see docs/LLM-PROVIDERS.md.
 """
 
 from __future__ import annotations

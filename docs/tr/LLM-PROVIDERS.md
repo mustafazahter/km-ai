@@ -1,3 +1,5 @@
+[English](../LLM-PROVIDERS.md) · Türkçe
+
 # LLM sağlayıcıları
 
 > EN: Pick a provider in the panel (Kurulum > Yapay zekâ modeli) or with `LLM_PROVIDER`. Every provider except
@@ -5,7 +7,7 @@
 > adapter (tool_use/tool_result). "Bağlan" fetches the provider's model list. Base URLs are from the providers'
 > public docs; none was called live from this repo (fake servers in tests).
 
-Seçim: panel → **Kurulum → Yapay zekâ modeli** (kartlar) veya `LLM_PROVIDER` (varsayılan `auto`: adresten anlaşılır). Anahtarı girip **Bağlan** deyince model listesi otomatik gelir (aranabilir liste, son kullanılan üstte, araç desteği biliniyorsa rozet); liste gelmezse model adı elle yazılır. Anahtarlar yalnız yazılır, geri gösterilmez. Kayıtlı anahtar yalnız kayıtlı adresin host'una gönderilir. Bulut ön ayarlarının adresi **sabittir** (değiştirilemez); yerel sağlayıcılar localhost/özel ağa gidebilir; "Özel" sağlayıcı varsayılan yalnız genel adreslere gider, yerel/özel ağ için kutu işaretlenir (`LLM_ALLOW_PRIVATE_NETWORK`). Link-local, bulut metadata, `0.0.0.0` ve bu servisin kendi portu her zaman engelli: [GUVENLIK.md §6b](GUVENLIK.md).
+Seçim: panel → **Kurulum → Yapay zekâ modeli** (kartlar) veya `LLM_PROVIDER` (varsayılan `auto`: adresten anlaşılır). Anahtarı girip **Bağlan** deyince model listesi otomatik gelir (aranabilir liste, son kullanılan üstte, araç desteği biliniyorsa rozet); liste gelmezse model adı elle yazılır. Anahtarlar yalnız yazılır, geri gösterilmez. Kayıtlı anahtar yalnız kayıtlı adresin host'una gönderilir. Bulut ön ayarlarının adresi **sabittir** (değiştirilemez); yerel sağlayıcılar localhost/özel ağa gidebilir; "Özel" sağlayıcı varsayılan yalnız genel adreslere gider, yerel/özel ağ için kutu işaretlenir (`LLM_ALLOW_PRIVATE_NETWORK`). Link-local, bulut metadata, `0.0.0.0` ve bu servisin kendi portu her zaman engelli: [SECURITY.md §6b](SECURITY.md).
 
 | Sağlayıcı (`LLM_PROVIDER`) | Base URL ön ayarı | Model listesi | Araç çağırma | Durum |
 |---|---|---|---|---|

@@ -267,7 +267,7 @@ def test_conversations_are_private_to_their_owner_and_ids_are_validated(tmp_path
 
 def test_failed_turn_is_not_stored_and_secrets_are_redacted(tmp_path):
     from stack_kit import register_secret
-    secret = "sk-test-secret-value-0123456789abcdef"
+    secret = "sk-test-secret-value-0123456789abcdef"  # fake value; stack-spec: ignore-secret
     register_secret(secret)
     e = Env(tmp_path, llm_script=[500, 500, 500, 500, reply("Tamam")])
     with session(e) as c:
@@ -337,7 +337,7 @@ def test_old_conversations_are_dropped_beyond_the_limit_and_all_can_be_deleted(t
 
 def test_scrub_masks_key_shapes_and_caps_length():
     from ai_bot import panel_chat
-    for secret in ("sk-abcdefghijklmnopqrstuvwx", "ghp_" + "a" * 30, "AKIA" + "A" * 16, "123456789:" + "A" * 35):
+    for secret in ("sk-abcdefghijklmnopqrstuvwx", "ghp_" + "a" * 30, "AKIA" + "A" * 16, "123456789:" + "A" * 35):  # fake values; stack-spec: ignore-secret
         assert secret not in panel_chat.scrub(f"anahtar {secret} bitti")
     assert len(panel_chat.scrub("x" * (panel_chat.MAX_STORED_CHARS + 500))) == panel_chat.MAX_STORED_CHARS
 

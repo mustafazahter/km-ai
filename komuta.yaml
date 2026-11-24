@@ -12,7 +12,7 @@
 #
 #  Doldur: <proje-adi>, <git-baglanti-adi>, <kullanici>. Doğrula:
 #      python <stack-spec>/tools/validate_stack.py . --allow-placeholders
-#  Kurallar: stack-spec/docs/KOMUTA-YAML.md · Panel: docs/ARAYUZ.md
+#  Kurallar: stack-spec/docs/KOMUTA-YAML.md · Panel: docs/ADMIN-UI.md
 # ============================================================================
 version: 1
 name: ai-bot

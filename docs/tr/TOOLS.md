@@ -1,3 +1,5 @@
+[English](../TOOLS.md) · Türkçe
+
 # Yerleşik araçlar
 
 > EN: Built-in tools. Each is a stack_kit `@tool`: visible to the AI (dots become underscores), callable at
@@ -43,11 +45,11 @@ Yeni sağlayıcı: `.claude/skills/add-search-provider`.
 
 Dönüş: `{"url", "title", "text", "truncated"}`. HTML okunabilir metne çevrilir (script/style/nav atılır); düz metin, JSON, XML olduğu gibi döner.
 
-**SSRF koruması** (gevşetilemez; ayrıntı [GUVENLIK.md](GUVENLIK.md)): yalnız http/https, URL'de kimlik bilgisi yok, izinli portlar (`WEB_READ_PORTS`, varsayılan 80/443/8080/8443), DNS çözümlemesinden sonra **her** adres herkese açık olmalı (loopback, özel ağ, link-local/metadata, CGNAT, ULA, IPv4-eşlemeli IPv6 engelli), bağlantı denetlenen IP'ye sabitlenir, her yönlendirme yeniden denetlenir (en çok `WEB_READ_MAX_REDIRECTS`=5), boyut `WEB_READ_MAX_BYTES` (2 MB) ve süre `WEB_READ_TIMEOUT` (15 sn) sınırlı.
+**SSRF koruması** (gevşetilemez; ayrıntı [SECURITY.md](SECURITY.md)): yalnız http/https, URL'de kimlik bilgisi yok, izinli portlar (`WEB_READ_PORTS`, varsayılan 80/443/8080/8443), DNS çözümlemesinden sonra **her** adres herkese açık olmalı (loopback, özel ağ, link-local/metadata, CGNAT, ULA, IPv4-eşlemeli IPv6 engelli), bağlantı denetlenen IP'ye sabitlenir, her yönlendirme yeniden denetlenir (en çok `WEB_READ_MAX_REDIRECTS`=5), boyut `WEB_READ_MAX_BYTES` (2 MB) ve süre `WEB_READ_TIMEOUT` (15 sn) sınırlı.
 
 ## schedule.add · schedule.list · schedule.cancel
 
-Ayrıntı: [ZAMANLAMA.md](ZAMANLAMA.md).
+Ayrıntı: [SCHEDULING.md](SCHEDULING.md).
 
 | Araç | Argümanlar |
 |---|---|
@@ -57,7 +59,7 @@ Ayrıntı: [ZAMANLAMA.md](ZAMANLAMA.md).
 
 ## memory.remember · memory.recall · memory.forget · memory.list
 
-Ayrıntı: [HAFIZA.md](HAFIZA.md).
+Ayrıntı: [MEMORY.md](MEMORY.md).
 
 | Araç | Argümanlar |
 |---|---|
@@ -77,7 +79,7 @@ curl -s -H "Authorization: Bearer $BRIDGE_TOKEN" -H 'Content-Type: application/j
 
 ## Plugin araçları (örnek)
 
-`haber.basliklar` (RSS başlıkları), `ornek.zar`, `ornek.bagis` (onaylı örnek). Kendi aracın: [GELISTIRICI.md](GELISTIRICI.md).
+`haber.basliklar` (RSS başlıkları), `ornek.zar`, `ornek.bagis` (onaylı örnek). Kendi aracın: [DEVELOPER.md](DEVELOPER.md).
 
 ## Olaylar
 

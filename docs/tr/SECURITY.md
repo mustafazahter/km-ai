@@ -1,3 +1,5 @@
+[English](../SECURITY.md) · Türkçe
+
 # Güvenlik
 
 > EN: Security model: no secrets in git, Telegram allow-list, trade tools need a human button press (the AI cannot

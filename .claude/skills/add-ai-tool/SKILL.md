@@ -3,11 +3,11 @@ name: add-ai-tool
 description: Give the ai-bot's AI a new ability by adding a plugins/*.py tool, with the right confirm/scope so money-moving tools always need the user's approval (Telegram button or channel code), plus a test that drives it through the fake LLM. Use when the user wants the bot to "be able to do X".
 ---
 
-# AI'ya yeni araç ekle
+# Add a new tool for the AI
 
-Her `@tool` aynı anda AI'ya, `/bridge` ve `/mcp`'ye açılır. AI aracı adının `_`'li hâliyle görür (`not.ekle` -> `not_ekle`).
+Every `@tool` is exposed to the AI, `/bridge` and `/mcp` at the same time. The AI sees a tool under its name with `_` instead of `.` (`not.ekle` -> `not_ekle`).
 
-1. `plugins/<ad>.py` yaz (şablon: `plugins/ornek_arac.py`, ağ kullanan gerçek örnek: `plugins/haber_ozet.py`):
+1. Write `plugins/<name>.py` (template: `plugins/ornek_arac.py`, a real example that uses the network: `plugins/haber_ozet.py`):
    ```python
    from stack_kit import ToolError, tool
 
@@ -17,16 +17,16 @@ Her `@tool` aynı anda AI'ya, `/bridge` ve `/mcp`'ye açılır. AI aracı adın�
            raise ToolError("not çok uzun", code="invalid_args")
        return {"kaydedildi": metin}
    ```
-   Ağa çıkan araçlarda ai-bot kapsayıcısını `get_stack().app_ai_bot` ile al ve `await app.fetcher.fetch(url)` kullan (örnek: `plugins/haber_ozet.py`).
-   - Açıklama (docstring ya da 2. argüman) AI'nın aracı ne zaman seçeceğini belirler: net yaz.
-   - Para hareketi / geri alınamaz iş: `confirm=True` ve `scope="trade"` (veya `"admin"`). Ajan bu araçları kullanıcı onaylamadan çalıştırmaz (Telegram'da **Onayla** düğmesi, WhatsApp/Teams/Slack'te `EVET 123456` kodu; e-postada ve onay kanalı olmayan turlarda araç reddedilir); `scope` trade/admin olan araç `confirm` bayrağı olmasa bile onay ister. Bunu gevşetme.
-   - Dışarıya istek atacaksan `httpx` yerine `app.fetcher.fetch(url)` kullan (özel/loopback/metadata IP engelli).
-   - Kullanıcıya hata: `raise ToolError("mesaj", code="kod")`. `chat_id` adlı parametre AI'dan gizlenir ve o anki sohbetle doldurulur.
-2. Yüklendi mi:
+   For tools that go out to the network, get the ai-bot container with `get_stack().app_ai_bot` and use `await app.fetcher.fetch(url)` (example: `plugins/haber_ozet.py`).
+   - The description (docstring or the 2nd argument) decides when the AI picks the tool: write it clearly.
+   - Money movement / irreversible work: `confirm=True` and `scope="trade"` (or `"admin"`). The agent does not run these tools without the user's approval (a **Onayla** (Confirm) button in Telegram, an `EVET 123456` code in WhatsApp/Teams/Slack; on e-mail and in turns with no approval channel the tool is refused); a tool whose `scope` is trade/admin asks for approval even without the `confirm` flag. Do not loosen this.
+   - For outbound requests use `app.fetcher.fetch(url)` instead of `httpx` (private/loopback/metadata IPs are blocked).
+   - Error to the user: `raise ToolError("message", code="code")`. A parameter named `chat_id` is hidden from the AI and filled with the current chat.
+2. Check it loaded:
    ```bash
    .venv/bin/python -m stack_kit tools
    ```
-3. Test (`tests/test_<ad>.py`), sahte LLM ile AI'nın aracı çağırmasını dene:
+3. Test (`tests/test_<name>.py`): have the AI call the tool through the fake LLM:
    ```python
    import asyncio
    from stack_kit import load_plugins
@@ -38,8 +38,8 @@ Her `@tool` aynı anda AI'ya, `/bridge` ve `/mcp`'ye açılır. AI aracı adın�
        load_plugins(h.stack, "plugins")
        assert asyncio.run(h.app.run_ai(CHAT, "zar at")) == "Attım."
    ```
-   Onaylı araçlar için `tests/test_confirm_flow.py` kalıbını kopyala (onaysız çalışmadığını da test et).
-4. Hepsini koş:
+   For confirmed tools copy the pattern in `tests/test_confirm_flow.py` (also test that the tool does not run without approval).
+4. Run everything:
    ```bash
    .venv/bin/python -m pytest
    ```

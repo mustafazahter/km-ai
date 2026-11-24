@@ -7,100 +7,101 @@
   km-ai
 </h1>
 
-**Projelerin için hazır bir AI altyapısı: model, araçlar, hafıza, zamanlayıcı, kanallar ve MCP köprüsü tek serviste.**
-Bir **Komuta Stack**'i: tek `komuta.yaml` ile Komuta'da, birkaç komutla yerelde. Bu AI altyapısını kendi projelerine ve diğer Komuta Stack'lerine kolayca entegre edebilirsin.
+**A ready-made AI foundation for your projects: model, tools, memory, scheduler, channels and an MCP bridge in one service.**
+A **Komuta Stack**: one `komuta.yaml` on Komuta, a few commands locally. You can plug this AI foundation into your own projects and other Komuta Stacks with little effort.
 
-[![Komuta Stack](https://img.shields.io/badge/Komuta-Stack-2b6cb0)](https://komuta.io/tr/docs/stacks/stacks)
+[![Komuta Stack](https://img.shields.io/badge/Komuta-Stack-2b6cb0)](https://komuta.io/docs/stacks/stacks)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-3776ab)](requirements.txt)
-[![Lisans: MIT](https://img.shields.io/badge/lisans-MIT-green)](LICENSE)
-[![MCP](https://img.shields.io/badge/MCP-Streamable%20HTTP-6b46c1)](docs/KOPRULER.md#mcp-istemcileri-claude-desktop-vb)
-[![English](https://img.shields.io/badge/lang-English-lightgrey)](README.en.md)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![MCP](https://img.shields.io/badge/MCP-Streamable%20HTTP-6b46c1)](docs/BRIDGES.md#mcp-clients-claude-desktop-etc)
+[![Türkçe](https://img.shields.io/badge/lang-T%C3%BCrk%C3%A7e-lightgrey)](README.tr.md)
 
 </div>
 
 ---
 
-## İçindekiler
+## Contents
 
-- [Nedir](#nedir)
-- [Neler yapar](#neler-yapar)
-- [5 dakikada kur](#5-dakikada-kur)
-- [Örnek sohbetler](#örnek-sohbetler)
-- [Komutlar](#komutlar)
-- [Seçenekler](#seçenekler)
-- [Yönetim arayüzü](#yönetim-arayüzü)
-- [Güvenlik](#güvenlik)
-- [Geliştirici alanı](#geliştirici-alanı)
-- [Köprüler](#köprüler)
-- [SSS](#sss)
-- [Bilinen sınırlar](#bilinen-sınırlar)
-- [English](#english)
-- [Kaynaklar](#kaynaklar)
+- [What it is](#what-it-is)
+- [Features](#features)
+- [Install in 5 minutes](#install-in-5-minutes)
+- [Example chats](#example-chats)
+- [Commands](#commands)
+- [Options](#options)
+- [Admin UI](#admin-ui)
+- [Security](#security)
+- [Developer area](#developer-area)
+- [Bridges](#bridges)
+- [FAQ](#faq)
+- [Known limits](#known-limits)
+- [Resources](#resources)
 
-## Nedir
+Detailed docs are in [`docs/`](docs/) (English); the Turkish translations are in [`docs/tr/`](docs/tr/), and the Turkish README is [`README.tr.md`](README.tr.md).
 
-km-ai, kendi projelerinin ve diğer Komuta Stack'lerinin üzerine oturan hazır bir **AI altyapısıdır**. Sıfırdan kurmak yerine tek servis olarak gelen parçalar: OpenAI uyumlu herhangi bir model (14 sağlayıcı, varsayılan OpenRouter) ve **araç çağırma**, web arama ve sayfa okuma, hafıza, zamanlanmış görevler, riskli işler için onay akışı, çok kanallı sohbet (Telegram, WhatsApp, Microsoft Teams, Slack, e-posta ve panelin kendi **Sohbet** sayfası: hangisinden yazarsan aynı AI, araç, hafıza ve zamanlayıcı çalışır) ve tüm araçları açan HTTP köprüsü ile **MCP** (n8n, başka stack'ler, Claude Desktop gibi istemciler). Kurulum ve yönetim, serviste yerleşik **yönetim panelinden** (`/ui`, Türkçe ve İngilizce) birkaç dakikada yapılır. Bir [Komuta Stack](https://komuta.io/tr/docs/stacks/stacks)'idir; [komuta-stack-kit](https://github.com/mustafazahter/komuta-stack-kit) üzerine kuruludur.
+## What it is
 
-**Asıl amaç basit bir sohbet asistanı olmak değil, AI altyapısı kurma sürecini kolaylaştırmaktır.** Sohbet asistanı olarak da çalışır, ama değeri başka yerde: projenizin işlevlerini [komuta-stack-kit](https://github.com/mustafazahter/komuta-stack-kit) ile `@tool` olarak yazarsınız, HTTP köprüsü ve MCP ile km-ai'ye bağlarsınız; AI bunları her kanaldan kullanır, para ya da geri alınamaz işleri kullanıcı onayına bağlar. Aynı altyapıyı kendi projelerinize veya diğer Komuta Stack'lerinize kolayca entegre edebilirsiniz. Nasıl yapıldığı: [Örnek kullanım senaryosu](#örnek-kullanım-senaryosu-kendi-projeni-km-aiye-bağla).
+km-ai is a ready-made **AI foundation** that sits under your own projects and other Komuta Stacks. Instead of building it from scratch, one service brings: any OpenAI-compatible model (14 providers, OpenRouter by default) with **tool calling**, web search and page reading, memory, scheduled jobs, an approval flow for risky actions, multi-channel chat (Telegram, WhatsApp, Microsoft Teams, Slack, e-mail and the panel's own **Chat** page: whichever you write from, the same AI, tools, memory and scheduler answer), and an HTTP bridge plus **MCP** that expose all tools (n8n, other stacks, clients such as Claude Desktop). Setup and management take a few minutes in the built-in **admin panel** (`/ui`, Turkish and English). It is a [Komuta Stack](https://komuta.io/docs/stacks/stacks), built on [komuta-stack-kit](https://github.com/mustafazahter/komuta-stack-kit).
+
+**The point is not to be a simple chat assistant, it is to make setting up AI infrastructure easy.** It works as a chat assistant too, but the value is elsewhere: you write your project's functions as `@tool`s with [komuta-stack-kit](https://github.com/mustafazahter/komuta-stack-kit) and connect them to km-ai over the HTTP bridge and MCP; the AI uses them from every channel, and money-moving or irreversible actions stay behind the user's approval. You can plug the same foundation into your own projects or other Komuta Stacks with little effort. How it works: [Example scenario](#example-scenario-connect-your-own-project-to-km-ai).
 
 ```mermaid
 flowchart LR
-  U["Sen"] <--> CH["Kanallar<br/>Telegram · WhatsApp · Teams<br/>Slack · e-posta"]
-  PAN["Yönetim paneli<br/>/ui · sohbet · ayarlar"] --> AG
-  subgraph AIBOT["km-ai servisi"]
-    CH --> AG["Ajan<br/>araç döngüsü"]
-    AG <--> LLM[("LLM<br/>OpenAI uyumlu")]
+  U["You"] <--> CH["Channels<br/>Telegram · WhatsApp · Teams<br/>Slack · e-mail"]
+  PAN["Admin panel<br/>/ui · chat · settings"] --> AG
+  subgraph AIBOT["km-ai service"]
+    CH --> AG["Agent<br/>tool loop"]
+    AG <--> LLM[("LLM<br/>OpenAI-compatible")]
     AG --> T1["web.search<br/>web.read SSRF"]
-    AG --> T2["schedule.*<br/>zamanlayıcı"]
+    AG --> T2["schedule.*<br/>scheduler"]
     AG --> T3["memory.*<br/>FTS5"]
     AG --> T4["plugins/*.py"]
     T2 & T3 --- DB[("SQLite<br/>/data")]
     API["/bridge · /mcp<br/>BRIDGE_TOKEN"]
   end
-  AG -- "köprü araçları<br/>onay" --> OTHER["Diğer Komuta Stack'leri<br/>(köprü araçları)"]
+  AG -- "bridge tools<br/>approval" --> OTHER["Other Komuta Stacks<br/>(bridge tools)"]
   N8N["n8n"] -- "ai.ask" --> API
-  API -- "olaylar" --> N8N
-  MCP["Claude Desktop<br/>MCP istemcisi"] --> API
+  API -- "events" --> N8N
+  MCP["Claude Desktop<br/>MCP client"] --> API
 ```
 
-## Neler yapar
+## Features
 
-| Özellik | Ayrıntı |
+| Feature | Details |
 |---|---|
-| **Çok kanallı sohbet** | Telegram, WhatsApp, Microsoft Teams, Slack ve e-posta; hepsi aynı AI, araç, hafıza ve zamanlayıcıyı paylaşır. Kanallar tek **Kanallar** sayfasında; her biri kendi sayfasına, kurulum rehberine, izin listesine ve sistem istemine sahiptir ([KANALLAR.md](docs/KANALLAR.md)) |
-| **Web araması** | `web.search`, varsayılan **otomatik** mod: ücretsiz kanalları (anahtarsız Parallel, DuckDuckGo, açık SearXNG) sırayla dener, hata vereni atlar; Tavily / Brave / Serper / kendi SearXNG'n eklenirse öne geçer |
-| **Sayfa okuma** | `web.read`: okunabilir metin; özel ağ/metadata adreslerine **SSRF koruması** |
-| **Zamanlanmış görev** | Cron, "10 dakika sonra", ISO zaman; sabit mesaj ya da zamanı gelince AI'nın çalıştırdığı istem. Mesajlara varsayılan emoji eklenmez |
-| **Hafıza** | AI neyi hatırlayacağına kendi karar verir; her mesajda ilgili anılar bağlama girer; `/hafiza` ile yönet |
-| **Sistem istemi** | Genel istem her kanalda geçerlidir; kanal başına ek istem yazılır (önce genel, sonra kanalınki). AI kendi araç listesini bilir ve sorulunca eksiksiz anlatır |
-| **Yönetim paneli** | Adım adım ilk kurulum sihirbazı, kurulum durum listesi, panelden **sohbet** (araçlar çalışır, onaylar tarayıcıda), canlı ayarlar, TR/EN, "nasıl yapılır" yardımları, yeni sürümde kendini yenileyen sekme |
-| **Köprüler** | mt5-trader gibi stack'lerin araçları AI'ya açılır; para işlemleri **senin düğmene** bağlı |
-| **MCP + HTTP** | Tüm araçlar `/mcp` ve `/bridge` üzerinden; n8n'den `ai.ask` ile soru |
-| **Plugin** | `plugins/*.py` içine `@tool` yaz, AI hemen kullanır |
+| **Multi-channel chat** | Telegram, WhatsApp, Microsoft Teams, Slack and e-mail share the same AI, tools, memory and scheduler. One **Channels** page; each channel has its own page, setup guide, allow-list and system prompt ([docs/CHANNELS.md](docs/CHANNELS.md)) |
+| **Web search** | `web.search`, default **auto** mode: tries the free channels (keyless Parallel, DuckDuckGo, public SearXNG) in turn and skips the ones that fail; Tavily / Brave / Serper / your own SearXNG take priority when set |
+| **Page reading** | `web.read`: readable text with **SSRF protection** against private/metadata addresses |
+| **Scheduled jobs** | Cron, "in 10 minutes", ISO time; a fixed message or a prompt the AI runs when due. Messages get no default emoji |
+| **Memory** | The AI decides what to remember; relevant memories join every message; manage with `/hafiza` |
+| **System prompt** | A general prompt applies to every channel; add a per-channel one on top (general first, then the channel's). The AI knows its real tool list and describes all of it when asked |
+| **Admin panel** | Step-by-step first-run wizard, setup checklist, **chat** from the panel (tools run, confirmations in the browser), live settings, TR/EN, how-to guides, a tab that reloads itself on a new version |
+| **Bridges** | Tools of stacks such as mt5-trader become AI tools; money moves only after **your button press** |
+| **MCP + HTTP** | All tools on `/mcp` and `/bridge`; ask the AI from n8n with `ai.ask` |
+| **Plugins** | Write a `@tool` in `plugins/*.py`, the AI uses it right away |
 
-## 5 dakikada kur
+## Install in 5 minutes
 
 > [!TIP]
-> **Web araması** varsayılan olarak `auto` modunda çalışır ve anahtar istemez. Daha güvenilir sonuç için panelden bir anahtarlı sağlayıcı (Tavily, Brave, Serper) veya kendi SearXNG adresini ekleyebilirsin: [`examples/komuta-arama-saglayicili.yaml`](examples/komuta-arama-saglayicili.yaml).
+> **Web search** runs in `auto` mode by default and needs no key. For more reliable results add a keyed provider (Tavily, Brave, Serper) or your own SearXNG address in the panel: [`examples/komuta-arama-saglayicili.yaml`](examples/komuta-arama-saglayicili.yaml).
 
-### Yol A — Komuta (önerilen)
+### Path A — Komuta (recommended)
 
-1. Bu repoyu **fork**'la. Komuta panelinde bir **proje** aç ve GitHub bağlantını kur ([hızlı başlangıç](https://komuta.io/tr/docs/getting-started/quick-start)).
-2. `komuta.yaml` içinde `<proje-adi>`, `<git-baglanti-adi>`, `<kullanici>` yer tutucularını doldur.
-3. `console.komuta.io/stacks/new` → **Kaynak** → **komuta.yaml** kutusuna dosyayı yapıştır → **Planı incele** ([Stacks belgesi](https://komuta.io/tr/docs/stacks/stacks), [komuta.yaml başvurusu](https://komuta.io/tr/docs/stacks/stack-manifest-reference)).
-4. **Yayınla.** Zorunlu Secret yok. Varsayılan manifestte [otomatik dağıtım](https://komuta.io/tr/docs/services/service-auto-deploy) açıktır: depoya her `git push` servisi yeniden yayınlar; açık panel sekmesi yeni sürümü görünce kendini yeniler; eski sürüm yenisi hazır olana dek hizmet verir ([sıfır kesintili yayın](https://komuta.io/tr/blog/komuta-ekibi/zero-downtime-blue-green-deployment)).
-5. Servisin **Loglar** sekmesinden `Kurulum kodu`nu al, `https://<servis-adresi>/ui/` aç (önce Komuta girişi), kodla panel parolasını belirle. Sihirbaz önce hangi kanaldan konuşacağını sorar (Telegram, WhatsApp, Teams, Slack, e-posta ya da yalnız panel) ve **seçtiğin kanalın kurulumuyla devam eder** (Telegram için token ve sohbet kimliği: [@BotFather](docs/KURULUM.md#1-telegram-bot-tokenı); WhatsApp, Teams, Slack, e-posta: [docs/KANALLAR.md](docs/KANALLAR.md)); sonra yapay zekâ sağlayıcısını ve aramayı sorar. Kanal bağlamadan da panelin **Sohbet** sayfasından hemen konuşabilirsin, diğer kanalları sonradan **Kanallar** sayfasından eklersin. Hepsini Secret/ortam değişkeniyle vermek istersen: [`examples/komuta-env-ile.yaml`](examples/komuta-env-ile.yaml); değişkenler için [Komuta ortam değişkenleri belgesi](https://komuta.io/tr/docs/services/services-environment-variables).
+1. **Fork** this repo. Create a **project** in the Komuta console and connect GitHub ([quick start](https://komuta.io/docs/getting-started/quick-start)).
+2. Fill the placeholders `<proje-adi>` (project), `<git-baglanti-adi>` (git connection), `<kullanici>` (GitHub user) in `komuta.yaml`.
+3. `console.komuta.io/stacks/new` → **Kaynak** (Source) → paste into the **komuta.yaml** box → **Planı incele** (review plan) ([Stacks docs](https://komuta.io/docs/stacks/stacks), [komuta.yaml reference](https://komuta.io/docs/stacks/stack-manifest-reference)).
+4. **Yayınla** (publish). No required Secrets. [Auto deploy](https://komuta.io/docs/services/service-auto-deploy) is on in the default manifest, so every `git push` redeploys the service; an open panel tab reloads itself on the new version while the old one keeps serving until the new one is ready ([zero-downtime rollouts](https://komuta.io/blog/komuta-ekibi/zero-downtime-blue-green-deployment)).
+5. Take the `Kurulum kodu` (setup code) from the service's **Logs** tab, open `https://<service-address>/ui/` (Komuta sign-in first) and set the panel password with it. The wizard first asks which channel you will talk through (Telegram, WhatsApp, Teams, Slack, e-mail or panel only) and **continues with the setup of the channel you pick** (Telegram needs a token and chat id: [@BotFather](docs/SETUP.md#1-telegram-bot-token); WhatsApp, Teams, Slack, e-mail: [docs/CHANNELS.md](docs/CHANNELS.md)); then it asks for the AI provider and search. You can talk to it right away from the panel's **Chat** page without any channel, and add the other channels later from the **Channels** page. To pass everything as Secrets/environment instead: [`examples/komuta-env-ile.yaml`](examples/komuta-env-ile.yaml); variables: [Komuta environment variables docs](https://komuta.io/docs/services/services-environment-variables).
 
-Konsolda URL ile ön-doldurma yoktur; manifest yapıştırılır. MCP ile kurulum ve ayrıntılar: [docs/KURULUM.md](docs/KURULUM.md). Komuta tarafı: [Stacks](https://komuta.io/tr/docs/stacks/stacks), [yeni servis rehberi](https://komuta.io/tr/docs/services/new-service-guide), [MCP kurulumu](https://komuta.io/tr/docs/mcp/mcp-setup).
+The console has no URL prefill; you paste the manifest. Installation with MCP and details: [docs/SETUP.md](docs/SETUP.md). On the Komuta side: [Stacks](https://komuta.io/docs/stacks/stacks), [new service guide](https://komuta.io/docs/services/new-service-guide), [MCP setup](https://komuta.io/docs/mcp/mcp-setup).
 
-### Yol B — Docker compose (yerel)
+### Path B — Docker compose (local)
 
 ```bash
-scripts/setup.sh            # tokenları sorar, .env üretir (UI_PASSWORD, BRIDGE_TOKEN dahil)
+scripts/setup.sh            # asks for tokens, writes .env (UI_PASSWORD, BRIDGE_TOKEN included)
 docker compose up --build
 ```
 
-### Yol C — Python (geliştirme)
+### Path C — Python (development)
 
 ```bash
 uv venv --python 3.12 && uv pip install -r requirements-dev.txt
@@ -108,131 +109,128 @@ scripts/setup.sh
 PYTHONPATH=src:. .venv/bin/python -m ai_bot
 ```
 
-Anahtarsız denemek istersen sahte LLM: `.venv/bin/python scripts/fake_llm.py 9999` ve `LLM_BASE_URL=http://127.0.0.1:9999/v1` ([adımlar](docs/KURULUM.md#6-python-ile-yerel-geliştirme)).
+No key yet? Use the fake LLM: `.venv/bin/python scripts/fake_llm.py 9999` with `LLM_BASE_URL=http://127.0.0.1:9999/v1` ([steps](docs/SETUP.md#6-local-with-python-development)).
 
-## Örnek sohbetler
+## Example chats
 
-Anlatım kolay olsun diye örnekler **Telegram üzerinden** gösterilir; aynı konuşmalar WhatsApp, Teams, Slack, e-posta ve panel sohbetinde de çalışır.
+The examples are shown **through Telegram** to keep them easy to follow; the same conversations work in WhatsApp, Teams, Slack, e-mail and the panel chat.
 
 ```text
-Sen: Bu hafta sonu İzmir'de ne etkinlikler var?
-Bot: (web_search → web_read) Üç etkinlik buldum: … Kaynaklar: https://…
+You: What's on in Izmir this weekend?
+Bot: (web_search → web_read) I found three events: … Sources: https://…
 
-Sen: Her sabah 9'da teknoloji haberlerini özetle.
-Bot: (schedule_add, kind=prompt, cron "0 9 * * *") Tamam, her gün 09:00'da özet göndereceğim. #4
+You: Summarize tech news every morning at 9.
+Bot: (schedule_add, kind=prompt, cron "0 9 * * *") Done, a summary every day at 09:00. #4
 
-Sen: Adım Deniz, kahveyi sütsüz içerim.
-Bot: (memory_remember ×2) Not aldım, Deniz.
-     … iki gün sonra …
-Sen: Bana bir kahve dükkânı önerir misin?
-Bot: Sütsüz kahve sevdiğin için filtre kahvesiyle bilinen şu yerlere bakabilirsin: …
+You: My name is Deniz, I drink my coffee black.
+Bot: (memory_remember ×2) Noted, Deniz.
 
-Sen: 20 dakika sonra fırını kapatmamı hatırlat.
-Bot: (schedule_add) 20:42'de hatırlatacağım.
-Fırını kapat!
+You: Remind me to turn off the oven in 20 minutes.
+Bot: (schedule_add) I'll remind you at 20:42.
+Turn off the oven!
 
-Sen: 0.01 lot altın al.          (mt5-trader köprüsü bağlıysa)
-Bot: AI bu işlemi yapmak istiyor: mt5.buy  {symbol: XAUUSD, lot: 0.01}
-     [Onayla] [İptal]
+You: Buy 0.01 lot gold.          (with the mt5-trader bridge)
+Bot: The AI wants to run: mt5.buy  {symbol: XAUUSD, lot: 0.01}
+     [Confirm] [Cancel]
 ```
 
-Parantez içindekiler botun arkada kullandığı araçlardır; gerçek cevaplar modele göre değişir.
+Text in parentheses shows the tools used behind the scenes; real answers depend on the model.
 
-## Komutlar
+## Commands
 
-Komutlar **her kanalda** çalışır: Telegram, WhatsApp, Microsoft Teams, Slack ve e-posta. `/komut` ya da `!komut` yazılır (Slack `/` ile başlayan mesajları kendi komutu sayar, orada `!hafiza` yaz). Komut olmayan metin AI'ya gider; komutlar AI'ya hiç uğramaz. Onay isteyen komutlar (`/hafiza temizle`) Telegram'da düğmeyle, diğer kanallarda `EVET 123456` koduyla onaylanır. E-postada gönderen doğrulanamadığı için yalnız okuma komutları çalışır (`/help`, argümansız `/hafiza` `/gorevler` `/model`); değiştirenler reddedilir.
+Commands work on **every channel**: Telegram, WhatsApp, Microsoft Teams, Slack and e-mail. Type `/command` or `!command` (Slack treats messages that start with `/` as its own commands, so type `!hafiza` there). Text that is not a command goes to the AI; commands never reach the AI. Commands that ask for approval (`/hafiza temizle`) are confirmed with a button in Telegram and with a code like `EVET 123456` elsewhere. On e-mail the sender cannot be verified, so only read-only commands run (`/help`, and `/hafiza`, `/gorevler`, `/model` without arguments); anything that changes something is refused.
 
-| Komut | Ne yapar |
+| Command | What it does |
 |---|---|
-| `/start` | Karşılama (yalnız Telegram; izin listesinde değilsen kimliğini söyler) |
-| `/help` | Kullanım ve örnekler |
-| `/id` | Sohbet kimliği (yalnız Telegram; izin listesi boşken de çalışır) |
-| `/hafiza` | Anıları listele · `/hafiza sil <no>` · `/hafiza temizle` |
-| `/gorevler` | Zamanlanmış görevler · `/gorevler iptal <no>` |
-| `/model` | Modeli gör · `/model <ad>` · `/model varsayilan` |
-| `/sifirla` | Sohbet geçmişini temizle (anılar kalır) |
+| `/start` | Welcome (Telegram only; tells unauthorized chats their id) |
+| `/help` | Usage and examples |
+| `/id` | Chat id (Telegram only; works even with an empty allow-list) |
+| `/hafiza` | Memories · `/hafiza sil <n>` delete · `/hafiza temizle` clear all |
+| `/gorevler` | Scheduled jobs · `/gorevler iptal <n>` cancel |
+| `/model` | Show model · `/model <name>` · `/model varsayilan` (default) |
+| `/sifirla` | Clear chat history (memories stay) |
 
-### Kendi komutunu ekle
+### Add your own command
 
-`plugins/` altına bir dosya koy; komut tek kez yazılır, tüm kanallarda (ve Telegram'ın komut menüsünde) görünür, `/help` listeler:
+Drop a file into `plugins/`; a command is written once and shows up on every channel (and in Telegram's command menu), and `/help` lists it:
 
 ```python
 # plugins/ping.py
 from ai_bot.commands import command
 
-@command("ping", "Canlılık testi / liveness", readonly=True)
+@command("ping", "Liveness test", readonly=True)
 async def ping(ctx):
-    kanal = ctx.channel.name if getattr(ctx, "channel", None) else "telegram"
-    return f"pong ({kanal}) {ctx.arg_text}".strip()
+    channel = ctx.channel.name if getattr(ctx, "channel", None) else "telegram"
+    return f"pong ({channel}) {ctx.arg_text}".strip()
 ```
 
-`ctx`: `chat_id`, `args`, `arg_text`, `reply()`, `confirm()` (kullanıcı onayı), `run_tool()`. Hiçbir şeyi değiştirmeyen komuta `readonly=True` ver; öyle olmayan komut e-postada "bu kanalda kapalı" yanıtı alır. Silen ya da değiştiren komutta kullanıcıya `await ctx.confirm("... yapılsın mı?")` ile sor. Adım adım yönerge, test kalıbı ve kurallar: `.claude/skills/add-command/SKILL.md` ve [docs/GELISTIRICI.md](docs/GELISTIRICI.md#komut-ekleme-her-kanalda).
+`ctx`: `chat_id`, `args`, `arg_text`, `reply()`, `confirm()` (user approval), `run_tool()`. Give `readonly=True` to a command that changes nothing; any other command gets "disabled on this channel" on e-mail. For commands that delete or change something, ask the user with `await ctx.confirm("... go ahead?")`. Step-by-step guide, test pattern and rules: `.claude/skills/add-command/SKILL.md` and [docs/DEVELOPER.md](docs/DEVELOPER.md#adding-a-command-on-every-channel).
 
-## Seçenekler
+## Options
 
-| Env | Varsayılan | Açıklama |
+| Env | Default | Description |
 |---|---|---|
-| `TELEGRAM_BOT_TOKEN` | — | Telegram kanalı için Secret `bot-token` |
-| `TELEGRAM_ENABLED` | `true` | Telegram kanalını aç/kapat (panelde anahtar); kapalıyken bot mesaj dinlemez |
-| `ALLOWED_CHAT_IDS` | — | Telegram izin listesi, Secret `allowed-chat-ids`; boşken yalnız `/id`, `/start` (diğer kanalların listeleri kendi sayfalarında) |
-| `LLM_PROVIDER` | `auto` | Sağlayıcı (14 seçenek); `auto` adresten anlaşılır |
-| `LLM_BASE_URL` | `https://openrouter.ai/api/v1` | OpenAI uyumlu uç |
+| `TELEGRAM_BOT_TOKEN` | — | Secret `bot-token` for the Telegram channel |
+| `TELEGRAM_ENABLED` | `true` | Switch the Telegram channel on/off (a switch in the panel); off = the bot does not listen |
+| `ALLOWED_CHAT_IDS` | — | Telegram allow-list, Secret `allowed-chat-ids`; empty = only `/id`, `/start` (the other channels keep their lists on their own pages) |
+| `LLM_PROVIDER` | `auto` | Provider (14 options); `auto` is inferred from the address |
+| `LLM_BASE_URL` | `https://openrouter.ai/api/v1` | OpenAI-compatible endpoint |
 | `LLM_API_KEY` | — | Secret `llm-api-key` |
-| `LLM_MODEL` | `openai/gpt-4o-mini` | Model. **Önerilen: `deepseek/deepseek-v4.1-flash-1017`** (DeepSeek V4.1 flash, ucuz); sihirbaz bunu önerir. Yerleşik varsayılan, çalışan kurulumların modeli sessizce değişmesin diye aynı kaldı |
-| `MAX_TOOL_STEPS` | 6 | Mesaj başına araç turu |
+| `LLM_MODEL` | `openai/gpt-4o-mini` | Model. **Recommended: `deepseek/deepseek-v4.1-flash-1017`** (DeepSeek V4.1 flash, cheap); the wizard suggests it. The built-in default stayed the same so running installs do not change model silently |
+| `MAX_TOOL_STEPS` | 6 | Tool rounds per message |
 | `SEARCH_PROVIDER` | `auto` | `parallel` · `duckduckgo` · `tavily` · `brave` · `serper` · `searxng` |
-| `TAVILY_API_KEY` · `BRAVE_API_KEY` · `SERPER_API_KEY` · `SEARXNG_URL` | — | Seçtiğin arama sağlayıcısının anahtarı/adresi (panelden de girilir) |
-| `TZ` | `Europe/Istanbul` (manifest) | Zamanlayıcı saat dilimi |
-| `BRIDGE_TOKEN` | panelden üretilir (n8n örneğinde Komuta da üretir) | `/bridge`, `/mcp` anahtarı |
-| `BRIDGE_<AD>_URL` + `_TOKEN` | — | Başka stack'in araçları |
-| `WHATSAPP_*` · `TEAMS_*` · `SLACK_*` · `EMAIL_*` | kapalı | Kanal ayarları ve sırları; panelde **Kanallar** sayfasından girilir ([docs/KANALLAR.md](docs/KANALLAR.md)) |
-| `WEBHOOKS_OUT_URL` + `_SECRET` | — | Olayları n8n'e gönder |
+| `TAVILY_API_KEY` · `BRAVE_API_KEY` · `SERPER_API_KEY` · `SEARXNG_URL` | — | Key/address of the search provider you picked (also set in the panel) |
+| `TZ` | `Europe/Istanbul` (manifest) | Scheduler time zone |
+| `BRIDGE_TOKEN` | generated in the panel (the n8n example lets Komuta generate it too) | Key for `/bridge`, `/mcp` |
+| `BRIDGE_<NAME>_URL` + `_TOKEN` | — | Another stack's tools |
+| `WHATSAPP_*` · `TEAMS_*` · `SLACK_*` · `EMAIL_*` | off | Channel settings and secrets; entered on the panel's **Channels** page ([docs/CHANNELS.md](docs/CHANNELS.md)) |
+| `WEBHOOKS_OUT_URL` + `_SECRET` | — | Send events to n8n |
 
-Tam liste: [`.env.example`](.env.example), [docs/LLM-SAGLAYICILAR.md](docs/LLM-SAGLAYICILAR.md), [docs/ARACLAR.md](docs/ARACLAR.md).
+Full list: [`.env.example`](.env.example), [docs/LLM-PROVIDERS.md](docs/LLM-PROVIDERS.md), [docs/TOOLS.md](docs/TOOLS.md). Optional manifests: [`examples/`](examples/) (mt5-trader bridge, n8n, Tavily search). Default package `dz-dev` (~9 USD/month) + `Small` disk + your LLM usage.
 
-Güncel fiyatlar: [Komuta fiyatlandırma](https://komuta.io/tr/pricing).
+Current prices: [Komuta pricing](https://komuta.io/pricing).
 
-| Manifest | Ne | Aylık (yaklaşık) |
+| Manifest | What | Monthly (approx.) |
 |---|---|---|
-| [`komuta.yaml`](komuta.yaml) | Varsayılan, tek tık | `dz-dev` ~9 USD + disk `Small` + LLM kullanımı |
-| [`examples/komuta-mt5-ile.yaml`](examples/komuta-mt5-ile.yaml) | mt5-trader köprüsü | + mt5-trader Stack'i |
-| [`examples/komuta-n8n-ile.yaml`](examples/komuta-n8n-ile.yaml) | n8n olayları + `ai.ask` | aynı |
-| [`examples/komuta-arama-saglayicili.yaml`](examples/komuta-arama-saglayicili.yaml) | Tavily araması | + Tavily planı |
-| [`examples/komuta-env-ile.yaml`](examples/komuta-env-ile.yaml) | Bütün ayarlar Secret/ortamdan; değerler sihirbazda dolu gelir, doğrulama bekler | aynı |
-| [`examples/komuta-giris-kapali.yaml`](examples/komuta-giris-kapali.yaml) | Komuta girişi yok, yalnız panel parolası (n8n/MCP/webhook için) | aynı |
+| [`komuta.yaml`](komuta.yaml) | Default, one click | `dz-dev` ~9 USD + `Small` disk + LLM usage |
+| [`examples/komuta-mt5-ile.yaml`](examples/komuta-mt5-ile.yaml) | mt5-trader bridge | + the mt5-trader Stack |
+| [`examples/komuta-n8n-ile.yaml`](examples/komuta-n8n-ile.yaml) | n8n events + `ai.ask` | same |
+| [`examples/komuta-arama-saglayicili.yaml`](examples/komuta-arama-saglayicili.yaml) | Tavily search | + a Tavily plan |
+| [`examples/komuta-env-ile.yaml`](examples/komuta-env-ile.yaml) | Every setting from Secrets/environment; values show up filled in the wizard and wait for verification | same |
+| [`examples/komuta-giris-kapali.yaml`](examples/komuta-giris-kapali.yaml) | No Komuta sign-in, panel password only (for n8n/MCP/webhooks) | same |
 
-## Yönetim arayüzü
+## Admin UI
 
-Servis `/ui` adresinde sade bir yönetim paneli taşır (açık/koyu tema, mobil uyumlu, dış istek yok, Türkçe ve İngilizce):
+The service ships a small admin panel at `/ui` (light/dark, mobile friendly, no external requests, Turkish and English):
 
-- **İki kapı:** varsayılan `komuta.yaml` yalnız `/ui` yolunu Komuta girişinin arkasına alır ([erişim koruması](https://komuta.io/tr/docs/services/stack-manifest-access)); panelin kendi parolası da vardır. Sitenin geri kalanı (`/health`, `/bridge`, `/mcp`, `/hook`, `/channels`) girişsiz açıktır ve kendi korumasını taşır (token, HMAC imzası, JWT). İlk açılışta servis günlüğüne (Komuta konsolu → Loglar) tek kullanımlık **kurulum kodu** yazılır; `/ui/setup` kodla panel parolasını belirletir.
-- **Kurulum sihirbazı ve durum listesi:** panel parolası, **kanal seçimi** (seçtiğin kanalın kurulumuyla devam edilir), yapay zekâ sağlayıcısı (OpenRouter, OpenAI, Anthropic (Claude), Gemini, xAI (Grok), Groq, DeepSeek, Mistral, Together, Perplexity, Ollama, LM Studio, vLLM, özel) + **otomatik model listesi ve fiyatlar**, arama. Ortam değişkenlerinden gelen değerler dolu görünür; doğrulanmadan "tamam" sayılmaz. **Kurulum** sayfası her adımın durumunu gösterir ve istediğin an düzenletir.
-- **Genel bakış:** bot durumu, sayılar, web arama, köprü yüzeyleri ve son hatalar kompakt kartlarda. Sayfa her 10 saniyede yalnız değişen değerleri yerinde günceller (yeniden yükleme, titreme yok); tekrarlayan hatalar tek satırda "N kez" olarak gruplanır.
-- **Sohbet:** panelden bota yaz, model seç, araçlar çalışsın; onay isteyen işlemler tarayıcıda sorulur. Konuşmalar sunucuda saklanır (düz metin, sırlar maskeli); **Geçmiş** listesinden eski sohbete dönülür, tek tek ya da hepsi silinebilir.
-- **Kanallar:** Telegram, WhatsApp, Teams, Slack ve e-posta tek sayfada kompakt kartlar; her kanalın aç/kapat anahtarı, kendi sayfası, adım adım kurulum rehberi, izin listesi, test düğmesi ve kanala özel sistem istemi vardır. Telegram'ı açıp kapatabilirsin (kapalıyken bot mesaj dinlemez).
-- **Ayarlar**, **Entegrasyonlar** (köprü/MCP/webhook varsayılan KAPALI; açınca token bir kez gösterilir; n8n, curl, Claude Code/Desktop, TradingView örnekleri), Hafıza, Görevler, Araçlar, Günlük.
-- **Küçük ayrıntılar:** her parola ve sır alanında göster/gizle gözü; "Nasıl yapılır?" mini rehberleri; yeni sürüm yayınlanınca açık sekmenin kendiliğinden yenilenmesi; sunucu güncellenirken "Güncelleniyor" ekranı.
+- **Two gates:** the default `komuta.yaml` puts only `/ui` behind Komuta sign-in ([access protection](https://komuta.io/docs/services/stack-manifest-access)), and the panel has its own password. The rest of the site (`/health`, `/bridge`, `/mcp`, `/hook`, `/channels`) is open and carries its own protection (token, HMAC signature, JWT). On first start a one-time **setup code** is written to the service log (Komuta console → Logs); `/ui/setup` uses it to set the panel password. Forgot the password? Press **Forgot my password** on the sign-in page (`/ui/reset`): a one-time code valid for 15 minutes is written to the service log, and saving the new password closes all old sessions.
+- **Setup wizard and checklist:** panel password, **channel choice** (setup continues with the channel you pick), LLM provider (OpenRouter, OpenAI, Anthropic (Claude), Gemini, xAI (Grok), Groq, DeepSeek, Mistral, Together, Perplexity, Ollama, LM Studio, vLLM, custom) with an **automatic model list and prices**, search. Values from environment variables show as filled but are not counted done until verified. The **Setup** page shows every step's state and lets you edit it any time.
+- **Overview:** bot status, counts, web search, bridge surfaces and recent errors in compact cards. Every 10 seconds only the changed values are updated in place (no reload, no flicker); repeated errors are grouped on one line as "N times".
+- **Chat:** write to the bot from the panel, pick a model, tools run; actions that need approval are asked in the browser. Conversations are stored on the server (plain text, secrets masked); reopen a past chat from the **History** list and delete them one by one or all at once.
+- **Channels:** Telegram, WhatsApp, Teams, Slack and e-mail as compact cards on one page; each channel has an on/off switch, its own page, a step-by-step setup guide, an allow-list, a test button and its own system prompt. You can switch Telegram off (the bot then does not listen).
+- **Settings**, **Integrations** (bridge/MCP/webhook closed by default; tokens shown once; n8n, curl, Claude Code/Desktop, TradingView examples), Memory, Tasks, Tools, Log.
+- **Details:** a show/hide eye on every password and secret field; "How to?" mini guides; the open tab reloads itself when a new version is deployed; an "Updating" screen while the server rolls over.
 
-Öncelik: **panel > ortam değişkeni > varsayılan**; değişiklikler yeniden başlatmadan uygulanır. Sırlar yalnız yazılır (panel yalnız `…son4` gösterir). Güvenlik kilitleri panelden kapatılamaz. Ayrıntı: [docs/ARAYUZ.md](docs/ARAYUZ.md), kanallar: [docs/KANALLAR.md](docs/KANALLAR.md).
+Precedence: **panel > env var > default**; changes apply without a restart. Secrets are write-only (the panel shows `…last4` only). Security locks cannot be switched off from the panel. Details: [docs/ADMIN-UI.md](docs/ADMIN-UI.md), channels: [docs/CHANNELS.md](docs/CHANNELS.md).
 
-## Güvenlik
+## Security
 
-- **Repoda sır yok.** Tokenlar ve kişisel `ALLOWED_CHAT_IDS` Komuta Secret'ı; `.env` git dışında.
-- **İzin listesi.** Her kanalın kendi izin listesi vardır (Telegram: `ALLOWED_CHAT_IDS`; diğerleri kanal sayfasında). Boş liste = kimse yazamaz; listede olmayan gönderenin serbest metni sessizce düşer (Telegram'da `/start` ve `/id` yine yanıt verir).
-- **Onaysız para hareketi yok.** Onay isteyen veya `scope: trade/admin` olan her araç, kullanıcı onaylamadan çalışmaz: Telegram'da **Onayla** düğmesi, WhatsApp/Teams/Slack'te kodlu yanıt; e-postada ve panelde onaysız yol yoktur (e-posta reddeder, panel sohbeti tarayıcıda sorar). AI onayı kendisi veremez, `confirm_id`'yi hiç görmez. Testli: `tests/test_confirm_flow.py`.
-- **SSRF koruması.** `web.read` yalnız herkese açık adreslere gider; DNS sonrası IP denetimi, IP sabitleme, her yönlendirmede yeniden denetim, boyut/süre sınırı. Testli: `tests/test_safefetch.py`.
-- **İstem enjeksiyonuna karşı.** Bir turda web içeriği okunduysa aynı turdaki hafıza kaydı ve zamanlama kullanıcı onayı ister; anılar modele "VERİ, TALİMAT DEĞİL" işaretli blokta verilir; zamanlanmış görevler yeni görev kuramaz.
-- **Liste dışı sohbet yok.** Köprü/MCP çağıranı yalnız `ALLOWED_CHAT_IDS` sohbetlerine yazdırabilir; liste boşsa sohbet araçları kapalıdır.
-- **Root olmayan çalışma.** İmaj `USER 1000` ile çalışır, `/data` imajda 1000'e aittir; çalışma anında disk sahipliğine dokunulmaz (Komuta güncellemeleri için şart).
-- **İki kapı, kapalı köprü.** Varsayılan manifestte yalnız `/ui` Komuta girişi ister ve ayrıca panel parolası vardır; `/bridge`, `/mcp`, `/hook` varsayılan kapalı (404) ve açılınca token/HMAC ister, kanal webhook'ları kendi imzasını doğrular. Komuta girişini tamamen kapatmak için `examples/komuta-giris-kapali.yaml` ([docs/GUVENLIK.md](docs/GUVENLIK.md)).
-- **Panel parolalı.** İlk kurulum tek kullanımlık kodla; her yazma isteği CSRF korumalı; sırlar geri gösterilmez; koruma yalnız parola + onay ifadesiyle kapatılır. Testli: `tests/test_ui.py`, `tests/test_ui_v2.py`.
+- **No secrets in the repo.** Tokens and the personal `ALLOWED_CHAT_IDS` are Komuta Secrets; `.env` is git-ignored.
+- **Allow-list.** Every channel has its own allow-list (Telegram: `ALLOWED_CHAT_IDS`; the others on their channel page). An empty list means nobody can write; free text from a sender who is not listed is dropped silently (in Telegram `/start` and `/id` still answer).
+- **No money moves without approval.** Every tool that asks for confirmation or has `scope: trade/admin` does not run until the user approves: a **Confirm** button in Telegram, a coded reply in WhatsApp/Teams/Slack; e-mail and the panel have no unapproved path (e-mail refuses, the panel chat asks in the browser). The AI cannot approve itself and never sees the `confirm_id`. Tested: `tests/test_confirm_flow.py`.
+- **SSRF protection.** `web.read` only reaches public addresses: IP check after DNS, connection pinned to the checked IP, every redirect re-checked, size/time limits. Tested in `tests/test_safefetch.py`.
+- **Prompt-injection guard.** After outside web content was read in a turn, memory writes and schedules in that turn need the user's approval (Telegram button or channel code) and are rejected when no approval channel exists; memories reach the model in a block marked "DATA, NOT INSTRUCTIONS"; scheduled turns cannot create schedules.
+- **No foreign chats.** Bridge/MCP callers can only target `ALLOWED_CHAT_IDS`; an empty list disables chat-scoped tools.
+- **Non-root runtime.** The image runs as `USER 1000` and `/data` is owned by 1000 in the image; disk ownership is never changed at runtime (required for Komuta updates).
+- **Two gates, closed bridge.** In the default manifest only `/ui` asks for Komuta sign-in, and the panel has its own password; `/bridge`, `/mcp`, `/hook` are closed (404) by default and token/HMAC protected when opened; channel webhooks verify their own signatures. To drop Komuta sign-in entirely use `examples/komuta-giris-kapali.yaml` ([docs/SECURITY.md](docs/SECURITY.md)).
+- **Password-protected panel.** First-time setup with a one-time code (a forgotten password is reset the same way, with a one-time code from the log); every write is CSRF protected; secrets are never shown back; protection can only be switched off with the password and a confirmation phrase. Tested in `tests/test_ui.py`, `tests/test_ui_v2.py`.
 
-Ayrıntı ve ödünleşimler: [docs/GUVENLIK.md](docs/GUVENLIK.md).
+Details and trade-offs: [docs/SECURITY.md](docs/SECURITY.md).
 
-## Geliştirici alanı
+## Developer area
 
 ```python
-# plugins/not_ekle.py — AI, /bridge ve /mcp hemen görür
+# plugins/not_ekle.py — the AI, /bridge and /mcp see it immediately
 from stack_kit import ToolError, tool
 
 @tool("not.ekle", "Kısa bir not kaydeder / Saves a short note", scope="read")
@@ -243,144 +241,136 @@ def ekle(metin: str) -> dict:
 ```
 
 ```bash
-.venv/bin/python -m stack_kit tools      # plugin araçlarını listeler
-.venv/bin/python -m pytest               # sahte LLM + sahte Telegram ile testler
+.venv/bin/python -m stack_kit tools      # list plugin tools
+.venv/bin/python -m pytest               # tests with fake LLM + fake Telegram
 ```
 
-- Örnekler: [`plugins/ornek_arac.py`](plugins/ornek_arac.py), gerçek örnek [`plugins/haber_ozet.py`](plugins/haber_ozet.py) (RSS başlıkları).
-- Başka stack'e gömme: `ai_bot.setup(stack, bot)` → [docs/GELISTIRICI.md](docs/GELISTIRICI.md).
-- Claude Code becerileri (`.claude/skills/`): `add-ai-tool`, `add-command`, `add-channel`, `add-search-provider`, `add-memory-policy`, `add-llm-provider`, `add-ui-page`, `configure-access` ve ortak `add-tool`, `add-hook`, `add-bridge`, `emit-event`, `add-mcp-client`, `deploy-to-komuta`, `validate-stack`.
-- Ajan kuralları: [CLAUDE.md](CLAUDE.md) · [AGENTS.md](AGENTS.md).
+- Examples: [`plugins/ornek_arac.py`](plugins/ornek_arac.py), real-world [`plugins/haber_ozet.py`](plugins/haber_ozet.py) (RSS headlines).
+- Embed into another stack: `ai_bot.setup(stack, bot)` → [docs/DEVELOPER.md](docs/DEVELOPER.md).
+- Claude Code skills in `.claude/skills/`: `add-ai-tool`, `add-command`, `add-channel`, `add-search-provider`, `add-memory-policy`, `add-llm-provider`, `add-ui-page`, `configure-access` plus the shared kit skills `add-tool`, `add-hook`, `add-bridge`, `emit-event`, `add-mcp-client`, `deploy-to-komuta`, `validate-stack`.
+- Agent rules: [CLAUDE.md](CLAUDE.md) · [AGENTS.md](AGENTS.md).
 
-### Örnek kullanım senaryosu: kendi projeni km-ai'ye bağla
+### Example scenario: connect your own project to km-ai
 
-Senaryo: küçük bir e-ticaret projen var. Müşteri "Siparişim nerede?" diye sorunca km-ai kargo bilgisini projenden çeksin; iade gibi riskli bir işlem yalnız senin onayınla yapılsın; kargo gecikince bir otomasyon tetiklensin. Hepsi [komuta-stack-kit](https://github.com/mustafazahter/komuta-stack-kit) ile tek dosyada yazılır ve çalışan hâli bu depoda: [`examples/ornek-stack/kargo_stack.py`](examples/ornek-stack/kargo_stack.py) (testli: `tests/test_example_stack.py`).
+Scenario: you run a small e-commerce project. When a customer asks "Where is my order?", km-ai should pull the parcel status from your project; a risky action such as a return must only happen with your approval; and a late parcel should trigger an automation. All of it is written in one file with [komuta-stack-kit](https://github.com/mustafazahter/komuta-stack-kit), and the working version lives in this repo: [`examples/ornek-stack/kargo_stack.py`](examples/ornek-stack/kargo_stack.py) (tested in `tests/test_example_stack.py`).
 
-**1. Projene araç ekle.** `@tool` ile bir Python fonksiyonu araç olur; tip ipuçlarından şema çıkar. Geri alınamaz işlere `confirm=True` ve `scope="admin"` (ya da `"trade"`) ver: km-ai bunları kullanıcı onayı olmadan asla çalıştırmaz.
+**1. Add tools to your project.** `@tool` turns a Python function into a tool; the schema comes from the type hints. Give irreversible actions `confirm=True` and `scope="admin"` (or `"trade"`): km-ai never runs them without the user's approval.
 
 ```python
 from stack_kit import ToolError, configure, emit, hook, run, tool
 
 configure(name="kargo", version="0.1.0", events=["kargo.gecikti"])
 
-@tool("kargo.durum", "Sipariş numarasıyla kargo durumunu söyler")
+@tool("kargo.durum", "Tells the parcel status of an order")
 def durum(siparis_no: str) -> dict:
-    ...                                   # veritabanın ya da kargo firmasının API'si
+    ...                                   # your database or the carrier's API
 
-@tool("kargo.iade_baslat", "Siparişi iade eder (onay ister)", confirm=True, scope="admin")
+@tool("kargo.iade_baslat", "Starts a return (needs approval)", confirm=True, scope="admin")
 def iade_baslat(siparis_no: str, neden: str = "") -> dict:
     ...
 
-@hook("kargo-guncelle")                   # kargo firmasının webhook'u
+@hook("kargo-guncelle")                   # the carrier's webhook
 def kargo_guncelle(req):
-    ...                                   # gecikmede: emit("kargo.gecikti", {...})
+    ...                                   # when late: emit("kargo.gecikti", {...})
 
 if __name__ == "__main__":
     run()
 ```
 
-**2. Çalıştır.**
+**2. Run it.**
 
 ```bash
 BRIDGE_TOKEN=kargo-token-change-me-0123456789 HTTP_HOST=127.0.0.1 HTTP_PORT=8081 \
   python examples/ornek-stack/kargo_stack.py
 ```
 
-**3. km-ai'ye bağla.** km-ai tarafına iki ortam değişkeni yeter; araçlar açılışta keşfedilir ve `kargo_durum`, `kargo_iade_baslat` olarak modele görünür:
+**3. Connect it to km-ai.** Two environment variables on the km-ai side are enough; the tools are discovered at startup and show up to the model as `kargo_durum` and `kargo_iade_baslat`:
 
 ```bash
 BRIDGE_KARGO_URL=http://127.0.0.1:8081
 BRIDGE_KARGO_TOKEN=kargo-token-change-me-0123456789
 ```
 
-Komuta'da iki ayrı Stack olarak: `BRIDGE_KARGO_URL` için `valueFrom.service`, `BRIDGE_KARGO_TOKEN` için Secret kullanılır, hedef servis `network.public: true` olmalıdır ([docs/KOPRULER.md](docs/KOPRULER.md#mt5-trader-ile) aynı kalıbı mt5-trader için anlatır).
+On Komuta as two separate Stacks: use `valueFrom.service` for `BRIDGE_KARGO_URL` and a Secret for `BRIDGE_KARGO_TOKEN`; the target service must be `network.public: true` ([docs/BRIDGES.md](docs/BRIDGES.md#with-mt5-trader) shows the same pattern for mt5-trader).
 
-**4. Kullan.** Hangi kanaldan olursa olsun (panel sohbeti, Telegram, WhatsApp, Teams, Slack):
+**4. Use it.** From any channel (panel chat, Telegram, WhatsApp, Teams, Slack):
 
 ```text
-Sen: 1042 numaralı siparişim nerede?
-Bot: (kargo_durum) Siparişin dağıtımda; Yurtiçi bugün 18:00'e kadar teslim etmeyi planlıyor.
+You: Where is my order 1042?
+Bot: (kargo_durum) It is out for delivery; the carrier plans to deliver it by 18:00 today.
 
-Sen: 1042'yi iade et, ürün hasarlıymış.
-Bot: AI bu işlemi yapmak istiyor: kargo.iade_baslat  {siparis_no: 1042, neden: hasarlı}
-     [Onayla] [İptal]      (Telegram'da düğme; WhatsApp/Teams/Slack'te kodlu yanıt)
+You: Return order 1042, the item arrived damaged.
+Bot: The AI wants to run: kargo.iade_baslat  {siparis_no: 1042, neden: damaged}
+     [Confirm] [Cancel]    (a button in Telegram; a coded reply in WhatsApp/Teams/Slack)
 ```
 
-**5. Genişlet.**
-- Gecikme olayı (`kargo.gecikti`) projenin `WEBHOOKS_OUT_URL` adresine imzalı gider: n8n'de müşteriye e-posta ya da km-ai'ye `ai.ask` ile özet yazdıran bir akış kur ([n8n ile](docs/KOPRULER.md#n8n-ile)).
-- Aynı araçlar `POST /mcp` ile Claude Desktop gibi MCP istemcilerinde de görünür.
-- Projen zaten Python ise köprü yerine tek süreçte birleştir: `ai_bot.setup(stack, bot)` ([docs/GELISTIRICI.md](docs/GELISTIRICI.md#başka-bir-stacke-gömme-ai_botsetup)).
-- Yeni araç, köprü, kanal ya da arama sağlayıcısı eklemek için `.claude/skills/` altındaki Claude Code becerilerini kullan (`add-tool`, `add-command`, `add-bridge`, `add-hook`, `emit-event`, `add-search-provider`).
+**5. Extend it.**
+- The late-parcel event (`kargo.gecikti`) is sent signed to your project's `WEBHOOKS_OUT_URL`: build an n8n flow that e-mails the customer or asks km-ai for a summary through `ai.ask` ([with n8n](docs/BRIDGES.md#with-n8n)).
+- The same tools also appear to MCP clients such as Claude Desktop through `POST /mcp`.
+- If your project is Python already, merge instead of bridging: `ai_bot.setup(stack, bot)` ([docs/DEVELOPER.md](docs/DEVELOPER.md#embedding-in-another-stack-ai_botsetup)).
+- To add a tool, bridge, channel or search provider, use the Claude Code skills under `.claude/skills/` (`add-tool`, `add-command`, `add-bridge`, `add-hook`, `emit-event`, `add-search-provider`).
 
-## Köprüler
+## Bridges
 
-MCP tarafı için Komuta'nın kendi belgeleri: [MCP kurulumu](https://komuta.io/tr/docs/mcp/mcp-setup), [MCP araçları](https://komuta.io/tr/docs/mcp/mcp-tools); blog: [Komuta MCP Server Nedir? Claude ile Deploy](https://komuta.io/tr/blog/cahit-yusuf-kafadar/komuta-mcp-server).
+For the MCP side see Komuta's own docs: [MCP setup](https://komuta.io/docs/mcp/mcp-setup), [MCP tools](https://komuta.io/docs/mcp/mcp-tools); blog: [Komuta MCP Server: Deploy Apps with AI](https://komuta.io/blog/cahit-yusuf-kafadar/komuta-mcp-server).
 
-| Bağlantı | Nasıl | Belge |
+| Link | How | Docs |
 |---|---|---|
-| mt5-trader (ayrı Stack) | `BRIDGE_MT5_URL` (`valueFrom.service.stack`) + `BRIDGE_MT5_TOKEN`; hedef servis public olmalı | [KOPRULER.md](docs/KOPRULER.md#mt5-trader-ile) |
-| mt5-trader (tek servis) | mt5-trader içinden `ai_bot.setup(stack, bot)` | [GELISTIRICI.md](docs/GELISTIRICI.md) |
-| n8n | Olaylar `WEBHOOKS_OUT_*` ile; n8n'den `POST /bridge/call/ai.ask` | [KOPRULER.md](docs/KOPRULER.md#n8n-ile) |
-| MCP (Claude Desktop vb.) | `POST /mcp` + Bearer token | [KOPRULER.md](docs/KOPRULER.md#mcp-istemcileri-claude-desktop-vb) |
+| mt5-trader (separate Stack) | `BRIDGE_MT5_URL` (`valueFrom.service.stack`) + `BRIDGE_MT5_TOKEN`; target service must be public | [BRIDGES.md](docs/BRIDGES.md#with-mt5-trader) |
+| mt5-trader (one service) | `ai_bot.setup(stack, bot)` inside mt5-trader | [DEVELOPER.md](docs/DEVELOPER.md) |
+| n8n | events via `WEBHOOKS_OUT_*`; `POST /bridge/call/ai.ask` from n8n | [BRIDGES.md](docs/BRIDGES.md#with-n8n) |
+| MCP (Claude Desktop…) | `POST /mcp` + Bearer token | [BRIDGES.md](docs/BRIDGES.md#mcp-clients-claude-desktop-etc) |
 
-## SSS
+## FAQ
 
-<details><summary><b>Hangi modeli kullanmalıyım?</b></summary>
+<details><summary><b>Which model?</b></summary>
 
-Araç çağırmayı destekleyen herhangi biri. Önerilen `deepseek/deepseek-v4.1-flash-1017` (OpenRouter, DeepSeek V4.1 flash): araç çağırır, 1M bağlam; 23 Kasım 2026'da OpenRouter'da milyon token başına yaklaşık 0,03 USD girdi / 0,20 USD çıktı (güncel fiyat için OpenRouter'a bak). Kurulum sihirbazı bu modeli önerir. Hep en yeni flash sürümü için `~deepseek/deepseek-flash-latest`; daha güçlüsü için `deepseek/deepseek-v4-pro`; yerel Ollama da olur. [LLM-SAGLAYICILAR.md](docs/LLM-SAGLAYICILAR.md)
+Any model with tool calling. Recommended: `deepseek/deepseek-v4.1-flash-1017` via OpenRouter (DeepSeek V4.1 flash: tool calling, 1M context; on 23 Nov 2026 about $0.03 in / $0.20 out per million tokens on OpenRouter, check OpenRouter for current prices). The setup wizard suggests it. To always follow the newest flash use `~deepseek/deepseek-flash-latest`; for a stronger one `deepseek/deepseek-v4-pro`; local Ollama works too. [LLM-PROVIDERS.md](docs/LLM-PROVIDERS.md)
 </details>
 
-<details><summary><b>Web araması sonuç vermiyor.</b></summary>
+<details><summary><b>Web search returns nothing.</b></summary>
 
-Anahtarsız DuckDuckGo bazı ağlardan otomatik istekleri reddeder. `SEARCH_PROVIDER=tavily` kullan: [`examples/komuta-arama-saglayicili.yaml`](examples/komuta-arama-saglayicili.yaml).
+Keyless channels may block automated requests from some networks. `auto` mode skips the ones that fail; add a keyed provider (e.g. `SEARCH_PROVIDER=tavily`) for reliable results: `examples/komuta-arama-saglayicili.yaml`.
 </details>
 
-<details><summary><b>AI benim yerime işlem açabilir mi?</b></summary>
+<details><summary><b>Can the AI trade for me?</b></summary>
 
-Yalnız sen düğmeye basarsan. Bkz. [Güvenlik](#güvenlik).
+Only when you press the button. See [Security](#security).
 </details>
 
-<details><summary><b>Verilerim nerede?</b></summary>
+<details><summary><b>Where is my data?</b></summary>
 
-Servisin `/data` diskindeki SQLite dosyasında. Mesajlar seçtiğin LLM sağlayıcısına gider. `/sifirla`, `/hafiza temizle` ile silersin.
+In a SQLite file on the service's `/data` disk. Messages go to your chosen LLM provider. Clear with `/sifirla` and `/hafiza temizle`.
 </details>
 
-Daha fazlası: [docs/SSS.md](docs/SSS.md).
+More: [docs/FAQ.md](docs/FAQ.md).
 
-## Bilinen sınırlar
+## Known limits
 
-- **Docker imajı yerelde build edilerek denenmedi**; Komuta'da derlenip yayınlanıyor. Python testleri (pytest) ve gerçek uvicorn ile `/health`, `/bridge`, `/mcp` doğrulaması sahte LLM ile yapıldı.
-- **Gerçek LLM ve gerçek Telegram ile geniş canlı deneme yapılmadı**; ikisi de testlerde sahte sunucularla (`tests/fakes.py`) taklit edilir. Telegram aç/kapa anahtarı yalnız sahte Telegram'la test edildi.
-- **WhatsApp, Teams, Slack ve e-posta kanalları gerçek servislerle denenmedi**; imza, izin listesi ve onay akışı testlerle, sahte sağlayıcılarla doğrulandı.
-- **Yayınlanan panel Komuta'da çalışıyor** (yalnız `/ui` Komuta girişli); canlı yayın akışı ve her yeni sürümün otomatik yenilemesi sahada sınanmaya devam ediyor.
-- **Arama `auto` modunda en iyi çabadır**; anahtarsız kanallar bazı ağlardan bot korumasına takılabilir, bot bunu açık bir hata olarak bildirir ve anahtarlı sağlayıcı önerir.
-- `/start` metni kit'in yerleşiğidir (izin listesi boşken de çalışması için).
-- `scripts/entrypoint.sh` (yalnız yazılabilirlik uyarısı) ve Dockerfile kuralları yerel simülasyonla test edildi; imaj build edilmedi.
-- Sır süzgeci kasıtlı olarak katıdır: "şifre yöneticisi kullanıyor" gibi masum cümleleri de reddedebilir.
+- **The Docker image was not built locally**; Komuta builds and publishes it. Python tests (pytest) and a real uvicorn run checking `/health`, `/bridge`, `/mcp` with a fake LLM were done.
+- **No broad live run against a real LLM or real Telegram**; both are simulated in tests (`tests/fakes.py`). The Telegram on/off switch was only tested with the fake Telegram.
+- **WhatsApp, Teams, Slack and e-mail were not tried against the real services**; signatures, allow-lists and the approval flow are covered by tests with fake providers.
+- **The published panel runs on Komuta** (only `/ui` behind Komuta sign-in); the live rollout flow and the automatic reload on each new version are still being proven in the field.
+- **Search in `auto` mode is best effort**; keyless channels may hit bot protection from some networks, the bot reports a clear error and suggests a keyed provider.
+- `/start` text is the kit's built-in (it must work with an empty allow-list).
+- `scripts/entrypoint.sh` (writability warning only) and the Dockerfile rules were tested in a local simulation; the image was not built.
+- The secret filter is strict on purpose and may refuse harmless sentences such as "uses a password manager".
 
-## English
+## Resources
 
-**km-ai** is a ready-made AI foundation, not just a chat assistant: one service that brings any OpenAI-compatible model with tool calling, web search, memory, a scheduler, an approval flow for risky actions, chat through Telegram, WhatsApp, Microsoft Teams, Slack, e-mail or the panel's own Chat page, and an HTTP bridge plus MCP that expose every tool. Its purpose is to make setting up AI infrastructure easy. It is a [Komuta Stack](https://komuta.io/docs/stacks/stacks): one `komuta.yaml` deploys it, and a built-in admin panel (`/ui`, Turkish and English) handles setup, channels and settings. The setup wizard asks which channel you want and continues with that channel's setup. Recommended model: `deepseek/deepseek-v4.1-flash-1017` (OpenRouter).
+From Komuta itself:
 
-Most importantly, you can plug this AI foundation into your own projects or other Komuta Stacks with little effort (see the example scenario in [README.en.md](README.en.md#example-scenario-connect-your-own-project-to-km-ai)).
-
-Full English documentation: [README.en.md](README.en.md). Komuta docs and blog: [komuta.io/docs](https://komuta.io/docs), [komuta.io/blog](https://komuta.io/blog).
-
-## Kaynaklar
-
-Komuta'nın kendi belgeleri ve yazıları:
-
-- [Komuta nedir?](https://komuta.io/tr/docs/getting-started/concepts) · [Hızlı başlangıç](https://komuta.io/tr/docs/getting-started/quick-start) · [Tüm belgeler](https://komuta.io/tr/docs)
-- Stack'ler: [Stacks](https://komuta.io/tr/docs/stacks/stacks) · [komuta.yaml başvurusu](https://komuta.io/tr/docs/stacks/stack-manifest-reference) · [Manifestte erişim koruması](https://komuta.io/tr/docs/services/stack-manifest-access)
-- Servis: [Yeni servis rehberi](https://komuta.io/tr/docs/services/new-service-guide) · [Otomatik dağıtım](https://komuta.io/tr/docs/services/service-auto-deploy) · [Ortam değişkenleri](https://komuta.io/tr/docs/services/services-environment-variables)
-- MCP: [MCP kurulumu](https://komuta.io/tr/docs/mcp/mcp-setup) · [MCP araçları](https://komuta.io/tr/docs/mcp/mcp-tools)
-- Blog: [Komuta blogu](https://komuta.io/tr/blog) · [Komuta MCP Server Nedir? Claude ile Deploy](https://komuta.io/tr/blog/cahit-yusuf-kafadar/komuta-mcp-server) · [Sıfır Kesinti ile Mavi-Yeşil Dağıtım](https://komuta.io/tr/blog/komuta-ekibi/zero-downtime-blue-green-deployment) · [Komuta Nedir? Koddan Canlıya Bulut Platformu](https://komuta.io/tr/blog/cahit-yusuf-kafadar/what-is-komuta)
-- Hesap: [Fiyatlandırma](https://komuta.io/tr/pricing) · [Faturalama ve cüzdan](https://komuta.io/tr/docs/account/billing)
+- [What is Komuta?](https://komuta.io/docs/getting-started/concepts) · [Quick start](https://komuta.io/docs/getting-started/quick-start) · [All docs](https://komuta.io/docs)
+- Stacks: [Stacks](https://komuta.io/docs/stacks/stacks) · [komuta.yaml reference](https://komuta.io/docs/stacks/stack-manifest-reference) · [Access protection in a manifest](https://komuta.io/docs/services/stack-manifest-access)
+- Services: [New service guide](https://komuta.io/docs/services/new-service-guide) · [Auto deploy](https://komuta.io/docs/services/service-auto-deploy) · [Environment variables](https://komuta.io/docs/services/services-environment-variables)
+- MCP: [MCP setup](https://komuta.io/docs/mcp/mcp-setup) · [MCP tools](https://komuta.io/docs/mcp/mcp-tools)
+- Blog: [Komuta blog](https://komuta.io/blog) · [Komuta MCP Server: Deploy Apps with AI](https://komuta.io/blog/cahit-yusuf-kafadar/komuta-mcp-server) · [Zero-Downtime Deployments with Blue-Green](https://komuta.io/blog/komuta-ekibi/zero-downtime-blue-green-deployment) · [What Is Komuta?](https://komuta.io/blog/cahit-yusuf-kafadar/what-is-komuta)
+- Account: [Pricing](https://komuta.io/pricing) · [Billing and wallet](https://komuta.io/docs/account/billing)
 
 <div align="center">
 
 <br><br>
 
-MIT · [komuta-stack-kit](https://github.com/mustafazahter/komuta-stack-kit) üzerinde · Katkılar hoş gelir
+MIT · built on komuta-stack-kit · contributions welcome
 
 </div>

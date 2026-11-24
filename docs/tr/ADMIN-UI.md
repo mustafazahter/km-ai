@@ -1,3 +1,5 @@
+[English](../ADMIN-UI.md) · Türkçe
+
 # Yönetim arayüzü (`/ui`)
 
 > EN: Admin panel at `/ui`, protected by a password by default (first start: a one-time setup code in the service
@@ -32,7 +34,7 @@
 | Hoş geldin sihirbazı | `/ui/#/hos-geldin` | Tam ekran, adım adım ilk kurulum (aşağıda). Yalnız ilk girişte kendiliğinden açılır; *Sonra yap* (sunucuda saklanır) veya kurulumu bitirmek sonrasında bir daha açılmaz. Kurulum sayfasındaki *Sihirbazı yeniden başlat* ile elle açılır. |
 | Ayarlar | `/ui/#/ayarlar` | Sol menüde bölümler: Model, Yanıt ve araçlar, Arama, Hafıza ve görevler, Telegram, **Güvenlik** (panel koruması, kilitler; `#/ayarlar/guvenlik`), Gizli değerler (yalnız yazılır), Değişiklik geçmişi. Kaynak rozeti: arayüz / ortam / varsayılan. |
 | Telegram | `/ui/#/telegram` | Bot token'ı (yaz, `getMe` testi), bağlantı durumu ve yeniden bağlanma, izinli sohbetler + canlı sohbet kimliği yakalama, komut menüsü senkronu (`setMyCommands`), son Telegram hataları. |
-| Kanallar | `/ui/#/kanallar` | Telegram, WhatsApp, Microsoft Teams, Slack ve e-posta (Telegram kartı kendi `#/telegram` sayfasına açılır, aç/kapat anahtarı kartta): kanal başına aç/kapat, kurulum rehberi, ayar formu (sırlar yalnız yazılır), izin listesi, Test et, bir kez gösterilen doğrulama kodu. Ayrıntı: [KANALLAR.md](KANALLAR.md). |
+| Kanallar | `/ui/#/kanallar` | Telegram, WhatsApp, Microsoft Teams, Slack ve e-posta (Telegram kartı kendi `#/telegram` sayfasına açılır, aç/kapat anahtarı kartta): kanal başına aç/kapat, kurulum rehberi, ayar formu (sırlar yalnız yazılır), izin listesi, Test et, bir kez gösterilen doğrulama kodu. Ayrıntı: [CHANNELS.md](CHANNELS.md). |
 | Entegrasyonlar | `/ui/#/kopru` | `/bridge`, `/mcp`, `/hook` aç/kapat, token ve webhook sırrı üret/yenile/iptal (bir kez gösterilir, kopyala düğmesi), kopyala-yapıştır örnekler, denetim kaydı. |
 | Hafıza, Görevler | `/ui/#/hafiza`, `/ui/#/gorevler` | Sohbet bazlı anılar (ara, sil), zamanlanmış görevler (iptal). |
 | Araçlar, Günlük | `/ui/#/araclar`, `/ui/#/gunluk` | Yerleşik/plugin/köprü araçları (onay gerekenler işaretli), redakteli log ve olaylar. |
@@ -59,7 +61,7 @@ Parolayı unuttunuz: giriş sayfasında **Parolamı unuttum**'a basın (`/ui/res
 3. **Seçilen kanalın kurulumu.**
    - **Telegram:** iki adım. *Telegram botu* (BotFather token'ı; *Test et* `getMe` ile doğrular, *Kaydet ve bağlan* saklar) ve *Sohbet kimlikleri* (bota mesaj atın, sohbet birkaç saniyede listede belirir, *İzin ver*; elle ekleme de var; liste boşken sohbet araçları kapalıdır).
    - **WhatsApp, Teams, Slack, e-posta:** tek adım, *<Kanal> kurulumu*. Kanallar sayfasındaki aynı form gömülüdür: kurulum rehberi, bağlantı adresi, ayarlar ve gizli değerler (yalnız yazılır), izin listesi, kanala özel sistem istemi, açma anahtarı ve *Test et*. Kanal **açık, ayarları tam ve izin listesinde en az bir kişi** olunca adım tamam olur; *Şimdilik atla* yalnız panel sohbetine döner.
-4. **Yapay zekâ modeli.** Sağlayıcı kartları: OpenRouter, OpenAI, Anthropic, Gemini, xAI, Groq, DeepSeek, Mistral, Together, Perplexity, Ollama, LM Studio, vLLM, özel. Anahtarı girip **Bağlan**: model listesi gelir (aranabilir, son kullanılan üstte, araç rozeti). Sihirbazın önerdiği model `deepseek/deepseek-v4.1-flash-1017` (yerleşik varsayılan `openai/gpt-4o-mini` çalışan kurulumlar değişmesin diye aynı kaldı). Ayrıntı: [LLM-SAGLAYICILAR.md](LLM-SAGLAYICILAR.md).
+4. **Yapay zekâ modeli.** Sağlayıcı kartları: OpenRouter, OpenAI, Anthropic, Gemini, xAI, Groq, DeepSeek, Mistral, Together, Perplexity, Ollama, LM Studio, vLLM, özel. Anahtarı girip **Bağlan**: model listesi gelir (aranabilir, son kullanılan üstte, araç rozeti). Sihirbazın önerdiği model `deepseek/deepseek-v4.1-flash-1017` (yerleşik varsayılan `openai/gpt-4o-mini` çalışan kurulumlar değişmesin diye aynı kaldı). Ayrıntı: [LLM-PROVIDERS.md](LLM-PROVIDERS.md).
 5. **Web arama.** Otomatik mod (önerilen), Parallel, DuckDuckGo, Tavily, Brave, Serper, SearXNG. Anahtarı eksik sağlayıcı kaydedilmez.
 6. **Özet ve uygula.** *Uygula ve bitir*; yeniden başlatma gerekmez.
 
@@ -79,14 +81,14 @@ panelde kaydedilen değer  >  ortam değişkeni  >  varsayılan
 
 - Sihirbaz ortamdan gelen değerleri dolu gösterir: "Ortam değişkeninden: `TELEGRAM_BOT_TOKEN` …abcd" (sırlar yalnız son 4 karakter).
 - Panelde yeni bir değer yazarsanız ortam değerini ezer; alan "Panelde kayıtlı · ortam değerini eziyor" der ve **Ortam değişkenine dön** düğmesi panel değerini siler.
-- Ortamdan gelen değerler dolu görünür ama doğrulanana kadar adım açık kalır (yanlış anahtar "hazır" görünmez). Örnek manifest: [`examples/komuta-env-ile.yaml`](../examples/komuta-env-ile.yaml).
+- Ortamdan gelen değerler dolu görünür ama doğrulanana kadar adım açık kalır (yanlış anahtar "hazır" görünmez). Örnek manifest: [`examples/komuta-env-ile.yaml`](../../examples/komuta-env-ile.yaml).
 
 ## 5. Köprü, MCP ve webhook
 
 `/bridge/*`, `/mcp`, `/hook/*` **varsayılan kapalıdır**: kapalı yüzey kimlik denetiminden önce **404** döner. Açmak:
 
 - Panel → **Entegrasyonlar**: yüzey başına anahtar; köprü/MCP açılırken token yoksa üretilip **bir kez** gösterilir (kopyala düğmesi). Token ve webhook sırrı yenilenebilir/iptal edilebilir; her değişiklik denetim kaydına girer. Sunucuda token'ın yalnız özeti saklanır.
-- Ortam: `BRIDGE_ENABLED=true`, `MCP_ENABLED=true`, `HOOKS_ENABLED=true` (başlangıç değeri; örnek [`examples/komuta-n8n-ile.yaml`](../examples/komuta-n8n-ile.yaml)). `BRIDGE_TOKEN` / `HOOK_SECRET` env'leri hâlâ geçerlidir ama manifestte yoktur.
+- Ortam: `BRIDGE_ENABLED=true`, `MCP_ENABLED=true`, `HOOKS_ENABLED=true` (başlangıç değeri; örnek [`examples/komuta-n8n-ile.yaml`](../../examples/komuta-n8n-ile.yaml)). `BRIDGE_TOKEN` / `HOOK_SECRET` env'leri hâlâ geçerlidir ama manifestte yoktur.
 - Komut satırı: `python -m stack_kit gate status | enable bridge | rotate`.
 
 Sayfadaki hazır örnekler: curl, n8n HTTP Request, Claude Code (`claude mcp add --transport http ...`), Claude Desktop (`mcp-remote` ile), TradingView webhook (`/hook/notify`, gövdede `"secret"` alanı). `/hook/notify` gelen metni izinli ilk sohbete Telegram mesajı olarak iletir (AI çalıştırmaz).
@@ -152,7 +154,7 @@ Her durumda engelli: link-local (169.254.0.0/16, fe80::/10), bulut metadata (169
 - **Kilitler kapatılamaz**: insan onayı, SSRF koruması, boş izin listesinde kapalı sohbet araçları, istem enjeksiyonu kilidi, `BRIDGE_TOKEN`/`UI_*` ayar şemasında yoktur; alt sınırlar korunur.
 - **CSRF + Origin** her yazma isteğinde; sıkı CSP; denetim kayıtları (ayarlar, parola/koruma, köprü kapısı).
 
-Ayrıntı: [GUVENLIK.md](GUVENLIK.md).
+Ayrıntı: [SECURITY.md](SECURITY.md).
 
 ## 11. Ortam değişkenleri
 

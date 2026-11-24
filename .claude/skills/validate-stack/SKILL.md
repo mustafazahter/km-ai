@@ -3,21 +3,21 @@ name: validate-stack
 description: Run the stack-spec local validator on this repository (files, komuta.yaml shape, placeholders, secret leak scan) and fix what it reports. Use before committing, publishing or deploying.
 ---
 
-# Stack'i doğrula
+# Validate the stack
 
-Gerekli: `komuta-stack-spec` deposu (yolu aşağıda `<stack-spec>`) ve PyYAML.
+Required: the `komuta-stack-spec` repository (its path is `<stack-spec>` below) and PyYAML.
 
 ```bash
-python -m pip install -r <stack-spec>/requirements.txt      # yalnız PyYAML
-python <stack-spec>/tools/validate_stack.py .                # bu repo
-python <stack-spec>/tools/validate_stack.py komuta.yaml      # yalnız manifest
-python <stack-spec>/tools/validate_stack.py . --strict       # uyarılar da hata
-python <stack-spec>/tools/validate_stack.py . --format json  # makine okunur çıktı
+python -m pip install -r <stack-spec>/requirements.txt      # PyYAML only
+python <stack-spec>/tools/validate_stack.py .                # this repo
+python <stack-spec>/tools/validate_stack.py komuta.yaml      # manifest only
+python <stack-spec>/tools/validate_stack.py . --strict       # warnings count as errors too
+python <stack-spec>/tools/validate_stack.py . --format json  # machine-readable output
 ```
 
-- Çıktı sonunda `GECTI: 0 hata, ...` görmelisin; çıkış kodu 0.
-- `<...>` yer tutucuları yalnız şablon/örnek için `--allow-placeholders` ile kabul edilir; yayınlanacak repoda kullanma.
-- Sır taraması bulgusu çıkarsa değeri dosyadan sil, Komuta'da `secrets` + `valueFrom.secret` ile ver; geçmişe commit edildiyse sırrı değiştir.
-- Ardından testler: `python -m pytest -q tests` ve köprü/plugin durumu: `python -m stack_kit doctor`.
+- At the end of the output you must see `GECTI: 0 hata, ...`; exit code 0.
+- `<...>` placeholders are accepted with `--allow-placeholders` only for templates/examples; do not use them in a repo that will be published.
+- If the secret scan reports a finding, delete the value from the file and provide it on Komuta with `secrets` + `valueFrom.secret`; if it was committed to history, rotate the secret.
+- Then the tests: `python -m pytest -q tests` and the bridge/plugin state: `python -m stack_kit doctor`.
 
-Bu yerel ön doğrulamadır; Komuta'nın kendi doğrulaması için `deploy-to-komuta` becerisine geç.
+This is a local pre-check; for Komuta's own validation move on to the `deploy-to-komuta` skill.

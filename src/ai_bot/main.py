@@ -2,7 +2,7 @@
 
 Loads ``.env`` (if present), registers ai-bot on the default stack and serves the stack_kit
 HTTP bridge (``/health``, ``/bridge/*``, ``/hook/*``, ``/mcp``) with the Telegram bot,
-the scheduler, ``plugins/*.py`` and the admin UI (``/ui``, see docs/ARAYUZ.md).
+the scheduler, ``plugins/*.py`` and the admin UI (``/ui``, see docs/ADMIN-UI.md).
 
 Safe defaults: the panel asks for a password (first start: a one-time setup code in the log, then
 ``/ui/setup``); ``/bridge``, ``/mcp`` and ``/hook`` are closed until opened in the panel.

@@ -29,7 +29,7 @@ ask() {  # ask <değişken> <soru> <varsayılan> [secret]
 }
 
 echo "== ai-bot kurulum sihirbazı =="
-echo "Telegram bot tokenı: Telegram'da @BotFather -> /newbot (docs/KURULUM.md)."
+echo "Telegram bot tokenı: Telegram'da @BotFather -> /newbot (docs/SETUP.md)."
 ask TG_TOKEN "Telegram bot tokenı (gizli yazılır)" "" secret
 ask CHAT_IDS "İzinli sohbet kimlikleri, virgüllü (bilmiyorsan boş bırak, sonra bota /id yaz)" ""
 ask LLM_URL "LLM adresi (OpenAI uyumlu)" "https://openrouter.ai/api/v1"

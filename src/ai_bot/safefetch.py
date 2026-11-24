@@ -1,6 +1,6 @@
 """SSRF-safe HTTP fetching for ``web.read``.
 
-Rules (do not loosen them; see docs/GUVENLIK.md):
+Rules (do not loosen them; see docs/SECURITY.md):
 
 * Only ``http``/``https`` URLs, no credentials in the URL, only allowed ports (default 80/443/8080/8443).
 * The host name is resolved first; **every** resolved address must be public

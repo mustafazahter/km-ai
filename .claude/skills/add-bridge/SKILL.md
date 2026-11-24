@@ -3,22 +3,22 @@ name: add-bridge
 description: Connect this stack to another stack or to n8n through the bridge (BRIDGES or BRIDGE_<NAME>_URL + BRIDGE_<NAME>_TOKEN) and call remote tools. Use when the user wants two stacks or an external system to work together.
 ---
 
-# Köprü bağla
+# Connect a bridge
 
-## Bu stack başka bir stack'i çağıracaksa
+## If this stack will call another stack
 
-Ortam (ikisi birleşir; aynı adda parçalı olan kazanır):
+Environment (the two forms merge; on the same name the split form wins):
 
 ```bash
-BRIDGES='mt5=http://mt5-trader:8080|<mt5 BRIDGE_TOKEN>'       # elle çalıştırırken
+BRIDGES='mt5=http://mt5-trader:8080|<mt5 BRIDGE_TOKEN>'       # when running by hand
 BRIDGE_MT5_URL=http://mt5-trader:8080                          # Komuta: valueFrom.service {stack, name, property: url}
 BRIDGE_MT5_TOKEN=<mt5 BRIDGE_TOKEN>                            # Komuta: valueFrom.secret (prompt secret)
-BRIDGE_MT5_URL=local                                           # iki stack aynı süreçteyse
+BRIDGE_MT5_URL=local                                           # if both stacks run in the same process
 ```
 
-Komuta interpolasyon yapmadığı için `komuta.yaml`'da **parçalı** biçimi kullan; entrypoint'te birleştirmeye gerek yok, kit kendisi birleştirir. Sağlayıcı serviste `network.public: true` gerekir (stack-spec `examples/iki-stack-kopru.yaml`).
+Komuta does no interpolation, so use the **split** form in `komuta.yaml`; there is no need to merge in the entrypoint, the kit merges them itself. The provider service needs `network.public: true` (stack-spec `examples/iki-stack-kopru.yaml`).
 
-Kontrol (token yazdırmaz):
+Check (prints no token):
 
 ```bash
 python -m stack_kit doctor
@@ -31,23 +31,23 @@ Kodda:
 from stack_kit import Bridges
 
 bridges = Bridges.from_env()
-tools = await bridges.tools()                     # her girdi: {..., "bridge": "mt5"}
+tools = await bridges.tools()                     # each entry: {..., "bridge": "mt5"}
 r = await bridges.call("mt5.price", {"symbol": "XAUUSD"})
-if r.get("needs_confirmation"):                   # önizlemeyi insana göster; onaylarsa:
+if r.get("needs_confirmation"):                   # show the preview to a human; if approved:
     r = await bridges.call("mt5.price", {"symbol": "XAUUSD"}, confirm_id=r["confirm_id"])
 ```
 
-Telegram'dan çağırırken onayı düğmeyle almak için: `await ctx.run_tool("mt5.buy", args, via=bridges)`.
+To get the confirmation with a button when calling from Telegram: `await ctx.run_tool("mt5.buy", args, via=bridges)`.
 
-## Dış sistem (n8n) bu stack'i çağıracaksa
+## If an external system (n8n) will call this stack
 
-`POST https://<servis>/bridge/call/<araç>` · başlık `Authorization: Bearer <BRIDGE_TOKEN>` · gövde `{"args": {...}}`. Araç listesi: `GET /bridge/manifest` (aynı başlıkla). Uzak bir köprüyü buradan görmek için:
+`POST https://<service>/bridge/call/<tool>` · header `Authorization: Bearer <BRIDGE_TOKEN>` · body `{"args": {...}}`. Tool list: `GET /bridge/manifest` (same header). To see a remote bridge from here:
 
 ```bash
-BRIDGE_TOKEN=<uzak token> python -m stack_kit tools --url https://<uzak-servis>
+BRIDGE_TOKEN=<remote token> python -m stack_kit tools --url https://<remote-service>
 ```
 
-Yüzeyler kapalı olabilir (köprü kapısı; kapalı = 404). Kontrol ve açma:
+Surfaces may be closed (bridge gate; closed = 404). Check and open:
 
 ```bash
 python -m stack_kit gate status

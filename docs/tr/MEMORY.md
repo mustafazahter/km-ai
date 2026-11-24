@@ -1,3 +1,5 @@
+[English](../MEMORY.md) · Türkçe
+
 # Hafıza
 
 > EN: Long-term memory in SQLite FTS5, per chat. The AI decides what to remember/forget (taught by the system prompt);

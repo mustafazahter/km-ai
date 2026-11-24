@@ -997,4 +997,4 @@ def mount_panel(fastapi_app: FastAPI, ai: "AiBot", live: rc.LiveConfig, *, title
     fastapi_app.state.ai_panel = panel
     return mount_ui(fastapi_app, ai.stack, title=title, static_dir=UI_DIR, api_router=panel.router, config=config,
                     default_auth="password", login_card_width=460, setup_card_width=460,
-                    setup_hint="Kurulum ve iki kapı modeli: docs/ARAYUZ.md")
+                    setup_hint="Kurulum ve iki kapı modeli: docs/tr/ADMIN-UI.md")

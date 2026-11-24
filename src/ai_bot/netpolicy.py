@@ -1,7 +1,7 @@
 """Outbound network policy for admin-configurable endpoints (LLM base URL, model lists, SearXNG).
 
 The panel lets a signed-in admin type URLs; without a policy that is a server-side request forgery
-(SSRF) tool. Rules (see docs/GUVENLIK.md "Ağ politikası"):
+(SSRF) tool. Rules (see docs/SECURITY.md "Network policy"):
 
 * only ``http``/``https``, no credentials in the URL, no ``/ui``, ``/bridge``, ``/mcp``, ``/hook`` paths;
 * the host is resolved and **every** address is checked; the connection is then **pinned** to the

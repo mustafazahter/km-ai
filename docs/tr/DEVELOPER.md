@@ -1,3 +1,5 @@
+[English](../DEVELOPER.md) · Türkçe
+
 # Geliştirici rehberi
 
 > EN: Extend ai-bot: write plugins (`plugins/*.py` with `@tool`), use the SSRF-safe fetcher, add bridges,
@@ -75,7 +77,7 @@ BRIDGE_<AD>_URL=https://diger-stack.example.com
 BRIDGE_<AD>_TOKEN=<o stack'in BRIDGE_TOKEN'ı>
 ```
 
-Ayrıntı: [KOPRULER.md](KOPRULER.md).
+Ayrıntı: [BRIDGES.md](BRIDGES.md).
 
 ## Başka bir stack'e gömme: `ai_bot.setup`
 
@@ -98,7 +100,7 @@ run(stack)
 
 ## Örnek senaryo: kendi projeni köprüyle bağla
 
-Çalışan, testli bir örnek var: [`examples/ornek-stack/kargo_stack.py`](../examples/ornek-stack/kargo_stack.py), küçük bir kargo takip stack'i (okuma aracı, onay isteyen iade aracı, kargo firmasının webhook'u ve `kargo.gecikti` olayı). `BRIDGE_KARGO_URL` + `BRIDGE_KARGO_TOKEN` ile km-ai'ye bağlanır; araçlar `kargo_durum`, `kargo_iade_baslat` olarak modele görünür, iade yalnız kullanıcı onayıyla çalışır. Adım adım anlatım ana README'de: **Geliştirici alanı > Örnek kullanım senaryosu**. Test: `tests/test_example_stack.py` (stack'i km-ai'ye gerçek köprü istemcisiyle bağlar).
+Çalışan, testli bir örnek var: [`examples/ornek-stack/kargo_stack.py`](../../examples/ornek-stack/kargo_stack.py), küçük bir kargo takip stack'i (okuma aracı, onay isteyen iade aracı, kargo firmasının webhook'u ve `kargo.gecikti` olayı). `BRIDGE_KARGO_URL` + `BRIDGE_KARGO_TOKEN` ile km-ai'ye bağlanır; araçlar `kargo_durum`, `kargo_iade_baslat` olarak modele görünür, iade yalnız kullanıcı onayıyla çalışır. Adım adım anlatım ana README'de: **Geliştirici alanı > Örnek kullanım senaryosu**. Test: `tests/test_example_stack.py` (stack'i km-ai'ye gerçek köprü istemcisiyle bağlar).
 
 ## Proje haritası
 

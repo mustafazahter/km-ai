@@ -5,7 +5,7 @@
 #  istekleri bot korumasıyla reddeder. Güvenilir arama için Tavily (ücretsiz kotası var)
 #  veya Brave. Brave için: SEARCH_PROVIDER=brave, Secret brave-api-key, env BRAVE_API_KEY.
 #  Kendi SearXNG sunucun için: SEARCH_PROVIDER=searxng + SEARXNG_URL. Aynısı sihirbazdan da
-#  yapılır (Kurulum > Web arama). Ayrıntı: docs/ARACLAR.md
+#  yapılır (Kurulum > Web arama). Ayrıntı: docs/TOOLS.md
 #
 #  Kurulum: console.komuta.io/stacks/new -> Kaynak -> 'YAML yapıştır' -> Planı
 #  incele -> Yayınla. Sonra servisin Loglar sekmesinden 'Kurulum kodu'nu al ve
@@ -14,7 +14,7 @@
 #
 #  Doldur: <proje-adi>, <git-baglanti-adi>, <kullanici>. Doğrula:
 #      python <stack-spec>/tools/validate_stack.py . --allow-placeholders
-#  Kurallar: stack-spec/docs/KOMUTA-YAML.md · Panel: docs/ARAYUZ.md
+#  Kurallar: stack-spec/docs/KOMUTA-YAML.md · Panel: docs/ADMIN-UI.md
 # ============================================================================
 version: 1
 name: ai-bot
@@ -62,7 +62,7 @@ services:
     # TradingView) Komuta kapısında kalır. O zaman konsoldan/Komuta MCP'den
     # /bridge/, /mcp, /hook/ yollarını girişsiz aç ya da examples/komuta-giris-kapali.yaml
     # kullan. Gelecek: yol bazlı kural manifestte yazılabilince yalnız /ui korunacak
-    # (öneri: access.paths, docs/ARAYUZ.md).
+    # (öneri: access.paths, docs/ADMIN-UI.md).
     access:
       signIn: true
     env:

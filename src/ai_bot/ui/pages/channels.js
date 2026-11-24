@@ -290,7 +290,7 @@
       "Botla Telegram'ın yanında WhatsApp, Microsoft Teams, Slack ve e-postadan da konuşun. Aynı yapay zekâ, aynı araçlar, aynı hafıza. Hepsi varsayılan olarak kapalıdır."));
     main.appendChild(h("div", { class: "callout" }, A.icon("shield"), h("div", null,
       h("strong", { text: "Güvenlik: " }),
-      "Kanal kapalıyken gelen adresleri 404 döner. Açık kanalda yalnız izin listesindeki kişiler bota ulaşır; liste boşsa kimse yazamaz. Gelen istekler Komuta girişiyle değil, sağlayıcının imzasıyla korunur; bu yüzden /channels/ yolu Komuta girişinden muaf olmalıdır (belge: docs/KANALLAR.md).")));
+      "Kanal kapalıyken gelen adresleri 404 döner. Açık kanalda yalnız izin listesindeki kişiler bota ulaşır; liste boşsa kimse yazamaz. Gelen istekler Komuta girişiyle değil, sağlayıcının imzasıyla korunur; bu yüzden /channels/ yolu Komuta girişinden muaf olmalıdır (belge: docs/tr/CHANNELS.md).")));
     var host = h("div", { class: "channel-grid" }, A.skeleton(4));
     main.appendChild(host);
     main.appendChild(h("div", { class: "channel-general" }, A.promptCard("SYSTEM_PROMPT_EXTRA", {

@@ -3,25 +3,25 @@ name: add-tool
 description: Add a tool to this stack as a plugins/*.py file with @tool, plus a pytest test. Use when the user wants a new command/tool callable over the bridge, MCP or Telegram.
 ---
 
-# Araç ekle (plugin)
+# Add a tool (plugin)
 
-1. `plugins/<ad>.py` oluştur (ya da `python -m stack_kit new-plugin <ad>` ile şablon al):
+1. Create `plugins/<name>.py` (or get the template with `python -m stack_kit new-plugin <name>`):
    ```python
    from stack_kit import ToolError, tool
 
-   @tool("<ad>.hello", "Selam verir / Says hello", scope="read")
-   def hello(who: str = "dünya") -> dict:
-       return {"message": f"Merhaba {who}!"}
+   @tool("<name>.hello", "Says hello", scope="read")
+   def hello(who: str = "world") -> dict:
+       return {"message": f"Hello {who}!"}
    ```
-   - Ad `<ad>.<eylem>`, küçük harf; MCP'de `<ad>_<eylem>` olur.
-   - Para hareketi / geri alınamaz iş → `confirm=True` (zorunlu). `scope`: `read` | `trade` | `admin`.
-   - Kullanıcıya hata: `raise ToolError("mesaj", code="kod")`. Sır döndürme.
-2. Görünüyor mu, çalışıyor mu:
+   - Name is `<name>.<action>`, lower case; over MCP it becomes `<name>_<action>`.
+   - Money movement / irreversible work → `confirm=True` (mandatory). `scope`: `read` | `trade` | `admin`.
+   - Error shown to the user: `raise ToolError("message", code="code")`. Never return secrets.
+2. Does it show up, does it work:
    ```bash
    python -m stack_kit tools
-   python -m stack_kit call <ad>.hello '{"who": "Ada"}'
+   python -m stack_kit call <name>.hello '{"who": "Ada"}'
    ```
-3. Test — `tests/test_<ad>.py`:
+3. Test: `tests/test_<name>.py`:
    ```python
    import asyncio
 
@@ -32,10 +32,10 @@ description: Add a tool to this stack as a plugins/*.py file with @tool, plus a 
        stack = Stack("test")
        load_plugins(stack, "plugins")
        assert stack.plugin_errors == []
-       result = asyncio.run(stack.call("<ad>.hello", {"who": "Ada"}))
-       assert result == {"ok": True, "result": {"message": "Merhaba Ada!"}}
+       result = asyncio.run(stack.call("<name>.hello", {"who": "Ada"}))
+       assert result == {"ok": True, "result": {"message": "Hello Ada!"}}
    ```
    ```bash
    python -m pytest -q tests
    ```
-4. `confirm=True` araç için testte iki adımı da dene: ilk çağrı `needs_confirmation`, ikincisi `confirm_id=...` ile `ok`.
+4. For a `confirm=True` tool, test both steps: the first call returns `needs_confirmation`, the second with `confirm_id=...` returns `ok`.

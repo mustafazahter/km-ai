@@ -1,3 +1,5 @@
+[English](../SETUP.md) · Türkçe
+
 # Kurulum
 
 > EN: Step-by-step install: pick a chat channel in the wizard (Telegram needs a bot token and your chat id from `/id`; WhatsApp, Teams, Slack and e-mail have their own guides), get an OpenRouter (or other) key,
@@ -30,7 +32,7 @@ Varsayılan sağlayıcı **OpenRouter** (tek anahtarla birçok model):
 2. Biraz kredi yükle veya ücretsiz modelleri dene (`LLM_MODEL` adını OpenRouter model listesinden al).
 3. Araç çağırmayı (tool calling) destekleyen bir model seç; önerilen `deepseek/deepseek-v4.1-flash-1017` (ucuz, araç çağırır, 1M bağlam; sihirbaz bunu önerir, yerleşik varsayılan `openai/gpt-4o-mini`).
 
-Başka sağlayıcı (OpenAI, Groq, DeepSeek, yerel Ollama...) için: [LLM-SAGLAYICILAR.md](LLM-SAGLAYICILAR.md).
+Başka sağlayıcı (OpenAI, Groq, DeepSeek, yerel Ollama...) için: [LLM-PROVIDERS.md](LLM-PROVIDERS.md).
 
 ## 4. Komuta'da kurulum
 
@@ -40,7 +42,7 @@ Başka sağlayıcı (OpenAI, Groq, DeepSeek, yerel Ollama...) için: [LLM-SAGLAY
 4. (İsteğe bağlı) Yerelde doğrula: `.venv/bin/python ../stack-spec/tools/validate_stack.py komuta.yaml`.
 5. `console.komuta.io/stacks/new` → **Kaynak** → **komuta.yaml** kutusuna dosyayı yapıştır → **Planı incele**.
 6. **Yayınla** (zorunlu Secret yok). Build bitince servis `/health` ile hazır olur.
-7. Servis → **Loglar**: `Kurulum kodu` satırını bul. `https://<servis-adresi>/ui/` aç (önce Komuta girişi), kodla panel parolasını belirle ve sihirbazı izle: kanal seçimi, seçilen kanalın kurulumu (Telegram için token ve sohbet kimliği), yapay zekâ sağlayıcısı, arama ([ARAYUZ.md](ARAYUZ.md)). Secret ile vermek istersen `examples/komuta-env-ile.yaml`.
+7. Servis → **Loglar**: `Kurulum kodu` satırını bul. `https://<servis-adresi>/ui/` aç (önce Komuta girişi), kodla panel parolasını belirle ve sihirbazı izle: kanal seçimi, seçilen kanalın kurulumu (Telegram için token ve sohbet kimliği), yapay zekâ sağlayıcısı, arama ([ADMIN-UI.md](ADMIN-UI.md)). Secret ile vermek istersen `examples/komuta-env-ile.yaml`.
 
 Paket: `dz-dev` (0.5 CPU / 1 GiB, aylık ~9 USD), disk `Small` (`/data`: SQLite). Opsiyonlu manifestler `examples/` altında:
 
@@ -59,7 +61,7 @@ scripts/setup.sh            # soruları sorar, .env üretir (BRIDGE_TOKEN yereld
 docker compose up --build
 ```
 
-İmaj uid 1000 ile çalışır ve `/data` imajda 1000'e aittir; varsayılan named volume ek ayar istemez. Bind mount (`./data:/data`) kullanırsan önce `chown 1000:1000 ./data` ([GUVENLIK.md](GUVENLIK.md#5-konteyner-kullanıcısı-ve-disk-sahipliği)).
+İmaj uid 1000 ile çalışır ve `/data` imajda 1000'e aittir; varsayılan named volume ek ayar istemez. Bind mount (`./data:/data`) kullanırsan önce `chown 1000:1000 ./data` ([SECURITY.md](SECURITY.md#5-konteyner-kullanıcısı-ve-disk-sahipliği)).
 
 > Not: Docker imajı bu depoda henüz build edilerek denenmedi (yazım anında Docker servisi kapalıydı). Sorun görürsen issue aç.
 

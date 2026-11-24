@@ -2,7 +2,7 @@
 #  ai-bot + mt5-trader köprüsü (iki ayrı Stack)
 # ============================================================================
 #  ai-bot'un AI'sı mt5-trader'ın araçlarını (mt5.buy, mt5.positions ...) görür. Para
-#  hareketi yapan her araç Telegram'da düğmeyle onaylanmadan ÇALIŞMAZ (docs/KOPRULER.md).
+#  hareketi yapan her araç Telegram'da düğmeyle onaylanmadan ÇALIŞMAZ (docs/BRIDGES.md).
 #  Bu bağlantı ai-bot'tan DIŞARI doğrudur: ai-bot'un kendi köprüsü kapalı kalabilir ve
 #  Komuta girişi bir şeyi bozmaz. mt5-trader tarafında köprü açık ve /bridge/ girişsiz olmalı.
 #  SIRA: 1) mt5-trader'ı yayınla (network.public: true; stack/servis adlarını eşleştir).
@@ -16,7 +16,7 @@
 #
 #  Doldur: <proje-adi>, <git-baglanti-adi>, <kullanici>. Doğrula:
 #      python <stack-spec>/tools/validate_stack.py . --allow-placeholders
-#  Kurallar: stack-spec/docs/KOMUTA-YAML.md · Panel: docs/ARAYUZ.md
+#  Kurallar: stack-spec/docs/KOMUTA-YAML.md · Panel: docs/ADMIN-UI.md
 # ============================================================================
 version: 1
 name: ai-bot
@@ -64,7 +64,7 @@ services:
     # TradingView) Komuta kapısında kalır. O zaman konsoldan/Komuta MCP'den
     # /bridge/, /mcp, /hook/ yollarını girişsiz aç ya da examples/komuta-giris-kapali.yaml
     # kullan. Gelecek: yol bazlı kural manifestte yazılabilince yalnız /ui korunacak
-    # (öneri: access.paths, docs/ARAYUZ.md).
+    # (öneri: access.paths, docs/ADMIN-UI.md).
     access:
       signIn: true
     env:

@@ -1,6 +1,6 @@
 """E-mail channel: IMAP poller + SMTP replies (TLS only, certificates verified, no plaintext fallback).
 
-Security model (docs/KANALLAR.md): the ``From`` header is trivially forged, so a mail is handled only when
+Security model (docs/CHANNELS.md): the ``From`` header is trivially forged, so a mail is handled only when
   1. the sender address is in EMAIL_ALLOWED_SENDERS (exact, case-insensitive), AND
   2. (EMAIL_REQUIRE_AUTH_RESULTS, default on) the ``Authentication-Results`` header written by YOUR mail server
      shows an ALIGNED pass: spf=pass with ``smtp.mailfrom`` in the From domain (``smtp.helo`` never counts),

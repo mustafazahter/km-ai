@@ -24,7 +24,7 @@ COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 # Uygulama uid/gid 1000 ile çalışır; root gerektirmez. /data imajda 1000'e aittir (named volume ve
 # Komuta diski bu sahipliği alır). Çalışma anında chown/setpriv YOK: disk sahipliğini değiştirmek
-# Komuta'nın sonraki yayındaki disk hazırlama adımını bozar. Ayrıntı: docs/GUVENLIK.md
+# Komuta'nın sonraki yayındaki disk hazırlama adımını bozar. Ayrıntı: docs/SECURITY.md
 RUN useradd --create-home --uid 1000 --user-group app \
     && mkdir -p /data && chown 1000:1000 /data \
     && chmod 755 /usr/local/bin/entrypoint.sh

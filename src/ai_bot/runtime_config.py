@@ -1,6 +1,6 @@
 """Settings saved in the admin UI, layered over the environment, applied while the bot runs.
 
-Precedence (documented in docs/ARAYUZ.md)::
+Precedence (documented in docs/ADMIN-UI.md)::
 
     value saved in /ui  >  environment variable  >  built-in default
 

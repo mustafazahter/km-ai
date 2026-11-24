@@ -1,3 +1,5 @@
+[English](../BRIDGES.md) · Türkçe
+
 # Köprüler: mt5-trader, n8n, MCP
 
 > EN: Connect ai-bot to other stacks (their tools become AI tools; trade tools always need a Telegram button press),
@@ -42,7 +44,7 @@ Sonra Telegram'da: "Altının fiyatı ne?" (okuma aracı, onaysız), "0.01 lot a
 
 ### Tek servis (birleşik)
 
-mt5-trader kendi sürecinde `ai_bot.setup(stack, bot)` çağırır; araçlar köprüsüz aynı kayıtta durur, onay kuralı aynıdır. Kurulumu mt5-trader reposu anlatır; imza: [GELISTIRICI.md](GELISTIRICI.md#başka-bir-stacke-gömme-ai_botsetup).
+mt5-trader kendi sürecinde `ai_bot.setup(stack, bot)` çağırır; araçlar köprüsüz aynı kayıtta durur, onay kuralı aynıdır. Kurulumu mt5-trader reposu anlatır; imza: [DEVELOPER.md](DEVELOPER.md#başka-bir-stacke-gömme-ai_botsetup).
 
 ## n8n ile
 

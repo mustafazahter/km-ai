@@ -8,7 +8,7 @@
 #     Authorization: Bearer <BRIDGE_TOKEN>, gövde {"args": {"prompt": "...", "notify": true}}.
 #     BRIDGE_TOKEN: Komuta panelinde Secret 'bridge-token' (ya da ai-bot panelinden üret).
 #  Köprü manifestten açık (BRIDGE_ENABLED=true); Komuta girişi YOK, yoksa n8n kapıda kalır.
-#  Hazır örnekler: ai-bot paneli > Köprü ve entegrasyonlar. Ayrıntı: docs/KOPRULER.md
+#  Hazır örnekler: ai-bot paneli > Köprü ve entegrasyonlar. Ayrıntı: docs/BRIDGES.md
 #
 #  Kurulum: console.komuta.io/stacks/new -> Kaynak -> 'YAML yapıştır' -> Planı
 #  incele -> Yayınla. Sonra servisin Loglar sekmesinden 'Kurulum kodu'nu al ve
@@ -17,7 +17,7 @@
 #
 #  Doldur: <proje-adi>, <git-baglanti-adi>, <kullanici>. Doğrula:
 #      python <stack-spec>/tools/validate_stack.py . --allow-placeholders
-#  Kurallar: stack-spec/docs/KOMUTA-YAML.md · Panel: docs/ARAYUZ.md
+#  Kurallar: stack-spec/docs/KOMUTA-YAML.md · Panel: docs/ADMIN-UI.md
 # ============================================================================
 version: 1
 name: ai-bot
