@@ -19,7 +19,7 @@
         tz.textContent = KUI.t("Saat dilimi: " + r.timezone + " · " + r.tasks.length + " görev");
         KUI.clear(body);
         if (!r.tasks.length) {
-          body.appendChild(A.empty("clock", "Görev yok", "Telegram'da \"her sabah 9'da haberleri özetle\" gibi bir istekle görev kurulur."));
+          body.appendChild(A.empty("clock", "Görev yok", "Sohbette (panel ya da bir kanal) \"her sabah 9'da haberleri özetle\" gibi bir istekle görev kurulur."));
           return;
         }
         function cancelButton(t) {

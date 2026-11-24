@@ -1,6 +1,6 @@
 /* Sohbet: panelden bota yazın, modeli seçin, araçlar çalışsın. Aynı ajan ve aynı güvenlik kuralları;
    onay gerektiren araçlar burada, tarayıcıda onaylanır. Konuşma geçmişi yalnız bu sekmede (bellekte)
-   tutulur; sunucuya ve Telegram geçmişine yazılmaz. Metin textContent ile eklenir (innerHTML yok). */
+   tutulur; sunucuya ve kanal geçmişlerine yazılmaz. Metin textContent ile eklenir (innerHTML yok). */
 (function () {
   "use strict";
   var A = window.AIB, h = A.h;
@@ -93,7 +93,7 @@
       log.appendChild(h("div", { class: "chat-empty" },
         h("span", { class: "chat-empty-mark" }, A.icon("spark")),
         h("h2", { text: "Botla konuşun" }),
-        h("p", { class: "muted", text: "Model, araçlar ve hafıza Telegram'dakiyle aynı. Onay gerektiren işlemler burada sorulur." }),
+        h("p", { class: "muted", text: "Model, araçlar ve hafıza bağlı kanallardakiyle aynı. Onay gerektiren işlemler burada sorulur." }),
         h("div", { class: "chat-suggest" }, SUGGESTIONS.map(function (s) {
           return h("button", { type: "button", class: "chip chip-btn", onclick: function () { input.value = s; submit(); } }, s);
         }))));
@@ -219,7 +219,7 @@
         h("div", { class: "chat-bar-tools" }, chatSel, modelBox, fresh)),
       log,
       h("div", { class: "chat-composer" }, h("div", { class: "chat-field" }, input, send, stop),
-        h("p", { class: "hint chat-hint", text: "Enter gönderir, Shift+Enter yeni satır. Konuşma bu sekmede tutulur; Telegram geçmişine yazılmaz." })));
+        h("p", { class: "hint chat-hint", text: "Enter gönderir, Shift+Enter yeni satır. Konuşma bu sekmede tutulur; kanal geçmişlerine yazılmaz." })));
     main.appendChild(shell);
     drawEmpty();
 

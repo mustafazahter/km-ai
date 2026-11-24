@@ -36,7 +36,7 @@
 
   function render(main) {
     var testBtn = A.button("Köprüleri test et", { icon: "refresh" });
-    main.appendChild(A.pageHead("Sistem", "Araçlar ve köprüler", "AI'nın kullanabildiği her araç. Onay gerektirenler Telegram'da düğmeyle onaylanmadan çalışmaz.", testBtn));
+    main.appendChild(A.pageHead("Sistem", "Araçlar ve köprüler", "AI'nın kullanabildiği her araç. Onay gerektirenler kullanıcı onaylamadan çalışmaz (Telegram'da düğme, diğer kanallarda kod).", testBtn));
     var bridgesBody = h("div", null, A.skeleton(2));
     var localBody = h("div", null, A.skeleton(5));
     var remoteBody = h("div", null);
