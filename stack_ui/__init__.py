@@ -1080,10 +1080,10 @@ def mount_ui(
         elif runtime.password_source == "env":
             hint = "Parola sunucudaki UI_PASSWORD ortam değişkenidir. / The password is the UI_PASSWORD env var."
         else:
-            hint = ("Parola ilk kurulumda belirlendi. / The password was set during first-time setup.")
+            hint = ""  # a password set in the UI: only the "forgot my password" link under the form
         forgot = ('<p class="hint t-center"><a href="/ui/reset">Parolamı unuttum / Forgot my password</a></p>'
                   if runtime.reset_available else "")
-        page = ((ASSETS_DIR / "login.html").read_text(encoding="utf-8").replace("{{hint}}", html.escape(hint))
+        page = ((ASSETS_DIR / "login.html").read_text(encoding="utf-8").replace("{{hint}}", f'<p class="hint t-center">{html.escape(hint)}</p>' if hint else "")
                 .replace("{{forgot}}", forgot))
         response = Response(page, media_type="text/html; charset=utf-8", headers={"Cache-Control": "no-store"})
         _set_csrf_cookie(request, response)

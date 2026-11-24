@@ -71,13 +71,21 @@
     var chatSel = h("select", { class: "select chat-select", "aria-label": "Sohbet bağlamı", hidden: true });
     var meta = h("div", { class: "chat-meta small muted" });
     var fresh = A.button("Yeni sohbet", { kind: "ghost", size: "sm", icon: "plus" });
+    fresh.classList.add("chat-fresh");   // in the bar only where the history column is hidden
+    var freshSide = A.button("Yeni sohbet", { kind: "primary", icon: "plus" });
+    freshSide.classList.add("chat-history-new");
+    var histCount = h("span", { class: "chat-history-count small muted" });
     var histToggle = A.button("Geçmiş", { kind: "ghost", size: "sm", icon: "list" });
     histToggle.classList.add("chat-history-toggle");
     var histList = h("ul", { class: "chat-history-list", "aria-label": "Geçmiş sohbetler" });
     var histEmpty = h("p", { class: "small muted chat-history-empty", text: "Henüz kayıtlı sohbet yok." });
     var histClear = A.button("Tümünü sil", { kind: "ghost", size: "sm", icon: "trash" });
+    histClear.classList.add("chat-history-clear");
     var history = h("aside", { class: "chat-history", "aria-label": "Sohbet geçmişi" },
-      h("div", { class: "chat-history-head" }, h("strong", { text: "Geçmiş" }), histClear), histEmpty, histList);
+      h("div", { class: "chat-history-head" }, h("strong", { text: "Sohbetler" }), histCount),
+      freshSide,
+      h("div", { class: "chat-history-scroll" }, histEmpty, histList),
+      h("div", { class: "chat-history-foot" }, histClear));
 
     var combo = null;
     function buildCombo() {
@@ -118,17 +126,33 @@
 
     // ------------------------------------------------------------ stored conversations
     var convs = [];
+    function dayGroup(ts) {
+      var now = new Date(), d = new Date(ts * 1000);
+      var start = function (x) { return new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime(); };
+      var days = Math.round((start(now) - start(d)) / 86400000);
+      if (days <= 0) return KUI.t("Bugün");
+      if (days === 1) return KUI.t("Dün");
+      if (days < 7) return KUI.t("Bu hafta");
+      return KUI.t("Daha eski");
+    }
     function drawHistory() {
       KUI.clear(histList);
       histEmpty.hidden = convs.length > 0; histClear.hidden = convs.length === 0;
+      histCount.textContent = convs.length ? String(convs.length) : "";
+      var group = null, ul = null;
       convs.forEach(function (c) {
+        var g = dayGroup(c.updated);
+        if (g !== group) {
+          group = g;
+          histList.appendChild(h("li", { class: "chat-history-group", role: "presentation", text: g }));
+        }
         var open = h("button", { type: "button", class: "chat-history-open", "aria-current": c.id === store.conversation ? "true" : null,
           title: c.title, onclick: function () { openConversation(c.id); } },
-          h("span", { class: "chat-history-title ellipsis", text: c.title }),
+          h("span", { class: "chat-history-title", text: c.title }),
           h("span", { class: "chat-history-time small muted", text: A.relTime(c.updated) }));
         var del = h("button", { type: "button", class: "btn btn-ghost btn-icon btn-sm chat-history-del", "aria-label": KUI.t("Sohbeti sil") + ": " + c.title,
           title: KUI.t("Sohbeti sil"), onclick: function () { removeConversation(c); } }, A.icon("trash"));
-        histList.appendChild(h("li", { class: c.id === store.conversation ? "is-active" : null }, open, del));
+        histList.appendChild(h("li", { class: "chat-history-item" + (c.id === store.conversation ? " is-active" : "") }, open, del));
       });
     }
     function loadHistory() {
@@ -173,7 +197,7 @@
 
     // ------------------------------------------------------------ one turn
     function setBusy(on) {
-      send.hidden = on; stop.hidden = !on; input.disabled = false; fresh.disabled = on; histClear.disabled = on;
+      send.hidden = on; stop.hidden = !on; input.disabled = false; fresh.disabled = on; freshSide.disabled = on; histClear.disabled = on;
       KUI.$all(".chat-history-open, .chat-history-del", history).forEach(function (b) { b.disabled = on; });
       if (!on) { busyTurn = null; input.focus(); }
     }
@@ -286,6 +310,7 @@
       if (busyTurn) KUI.api("/chat/cancel", { method: "POST", body: { turn: busyTurn } }).catch(function () { /* ignore */ });
     });
     fresh.addEventListener("click", startNew);
+    freshSide.addEventListener("click", startNew);
     histToggle.addEventListener("click", function () { var on = shell.classList.toggle("is-history-open"); histToggle.setAttribute("aria-expanded", on ? "true" : "false"); });
     histClear.addEventListener("click", removeAll);
     chatSel.addEventListener("change", function () { store.chatId = chatSel.value; });
