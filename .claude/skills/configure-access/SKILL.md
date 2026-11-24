@@ -15,7 +15,7 @@ Tehdit modeli: servis internete açık, linki bilen herkes adrese ulaşabilir. P
 | Parola, ilk kurulum | `UI_AUTH=password` (veya `default_auth="password"`) ve `UI_PASSWORD` yok → `/ui/setup`. **Kurulum kodu** servisin başlangıç günlüğünde: Komuta konsolu → servis → **Loglar** → `Kurulum kodu`. Kod tek kullanımlık, yeniden başlatınca değişir; istenirse `UI_SETUP_CODE` ile verilir. Parola ≥ 10 karakter, scrypt ile `DATA_DIR/ui-auth.json`'a (600) yazılır. |
 | Parola env'den | `UI_PASSWORD` verilirse kurulum atlanır; parola yalnız env'den değişir. |
 | Parola değiştir / herkesi çıkar | Panel → Erişim → "Parolayı değiştir" (mevcut + yeni) veya "Tüm oturumları kapat". API: `POST /ui/api/auth/password`, `POST /ui/api/auth/sessions/revoke`. |
-| Parolayı unuttum | Servisi durdurun, `DATA_DIR/ui-auth.json` dosyasını silin, başlatın → yeni kurulum kodu günlükte. |
+| Parolayı unuttum | Giriş sayfasındaki **Parolamı unuttum** bağlantısı (`/ui/reset`) servis günlüğüne tek kullanımlık, 15 dakika geçerli bir **sıfırlama kodu** yazar (günlükte `sıfırlama` diye arayın). Kodu ve yeni parolayı girin; kaydedince tüm eski oturumlar kapanır. `UI_PASSWORD` ortamdan geliyorsa sıfırlama yoktur, parola orada değişir. |
 | Korumayı kapat (önerilmez) | Panel → Erişim → parola + `KORUMAYI KAPAT`. Kapalıyken her sayfada kırmızı bant; tek tıkla açılır. Sıkı kurulum: `UI_FORCE_PROTECTION=1` (kapatma reddedilir). |
 
 ## Köprü kapısı (`stack_kit`)

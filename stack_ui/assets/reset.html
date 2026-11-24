@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <title>Parola sıfırlama · Yönetim</title>
+  <link rel="stylesheet" href="/ui/_kit/komuta-ui.css">
+  <link rel="stylesheet" href="/ui/_kit/auth-vars.css">
+  <script src="/ui/_kit/komuta-ui.js"></script>
+  <script src="/ui/_kit/reset.js" defer></script>
+</head>
+<body data-kui-public>
+  <main class="auth">
+    <form class="card auth-card auth-card-setup auth-card-reset form" method="post" action="/ui/reset" id="reset-form" novalidate>
+      <div class="brand">
+        <span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="/ui/_kit/icons.svg#lock"/></svg></span>
+        <span>
+          <span class="brand-name brand-name-lg">Parola sıfırlama</span>
+          <span class="brand-sub">Yeni yönetici parolası belirleyin · set a new admin password</span>
+        </span>
+      </div>
+      <ol class="auth-steps">
+        <li>Komuta konsolunda servisin <strong>Loglar</strong> sekmesini açın.</li>
+        <li>Arama kutusuna <code>sıfırlama</code> yazın ve <code>XXXX-XXXX-XXXX</code> biçimindeki kodu kopyalayın.</li>
+        <li>Kodu ve yeni parolanızı aşağıya girin. Kaydedince diğer tüm oturumlar kapanır.</li>
+      </ol>
+      <p class="hint">Kod 15 dakika geçerli ve tek kullanımlıktır. Görünmüyorsa zaman aralığını genişletin veya bu sayfayı yenileyin; kod günlüğe yeniden yazılır. Parolayı hatırlıyorsanız <a href="/ui/login">girişe dönün</a>.</p>
+      <div class="callout callout-danger" id="reset-error" role="alert" hidden>
+        <svg class="icon" aria-hidden="true"><use href="/ui/_kit/icons.svg#alert"/></svg>
+        <span id="reset-error-text"></span>
+      </div>
+      <input type="hidden" name="next" id="reset-next" value="/ui/">
+      <div class="field">
+        <label for="code">Sıfırlama kodu</label>
+        <input class="input mono" id="code" name="code" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX" required autofocus>
+      </div>
+      <div class="field">
+        <label for="password">Yeni parola</label>
+        <input class="input" id="password" name="password" type="password" autocomplete="new-password" minlength="10" required>
+        <span class="hint">En az 10 karakter; yaygın parolalar kabul edilmez.</span>
+      </div>
+      <div class="field">
+        <label for="password2">Parola tekrar</label>
+        <input class="input" id="password2" name="password2" type="password" autocomplete="new-password" required>
+      </div>
+      <button class="btn btn-primary btn-block" type="submit">
+        Parolayı sıfırla
+        <span class="btn-trail" aria-hidden="true"><svg class="icon"><use href="/ui/_kit/icons.svg#arrow-right"/></svg></span>
+      </button>
+    </form>
+  </main>
+</body>
+</html>

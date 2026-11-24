@@ -11,12 +11,23 @@
     csrf_failed: "İstek reddedildi; sayfayı yenileyin. / Request refused, reload."
   };
   function show(code, message) {
-    document.getElementById("setup-error-text").textContent = message || MESSAGES[code] || code;
+    // server texts are English-only except the weak-password one; unknown shapes (proxy pages, HTML) still say something
+    var text = (code === "weak_password" ? message : null) || MESSAGES[code] || message || code ||
+      "İstek tamamlanamadı. Sayfayı yenileyip tekrar deneyin. / The request failed. Reload the page and try again.";
+    document.getElementById("setup-error-text").textContent = text;
     document.getElementById("setup-error").hidden = false;
+  }
+  /** error code and message from any answer; a body without our error shape (gateway page, redirect) gets the HTTP status. */
+  function problem(res, body) {
+    var err = body && body.error;
+    if (err && typeof err === "object") return { code: err.code, message: err.message };
+    if (typeof err === "string") return { code: null, message: err };
+    return { code: null, message: "İstek tamamlanamadı (HTTP " + res.status + "). Oturum süresi dolmuş olabilir; sayfayı yenileyin. / "
+      + "The request failed (HTTP " + res.status + "). Your session may have expired; reload the page." };
   }
   function nextTarget(params) {
     var next = params.get("next") || "/ui/";
-    if (next.indexOf("/ui/") !== 0 || next.indexOf("//") === 0 || /[\\\s]/.test(next) || /^\/ui\/(login|logout|setup|api\/)/.test(next)) next = "/ui/";
+    if (next.indexOf("/ui/") !== 0 || next.indexOf("//") === 0 || /[\\\s]/.test(next) || /^\/ui\/(login|logout|setup|reset|api\/)/.test(next)) next = "/ui/";
     var hash = location.hash;
     if (hash && hash.length < 256 && /^#[A-Za-z0-9\-._~!$&'()*+,;=:@\/?%]*$/.test(hash)) next = next.split("#")[0] + hash;
     return next;
@@ -37,8 +48,8 @@
       }).then(function (res) {
         return res.json().catch(function () { return {}; }).then(function (body) {
           if (res.ok && body.ok) { location.assign(body.next || "/ui/"); return; }
-          var err = body.error || {};
-          show(err.code, err.code === "weak_password" ? err.message : null);
+          var err = problem(res, body);
+          show(err.code, err.message);
         });
       }).catch(function () { show("csrf_failed"); });
       window.KUI.busy(form.querySelector("button[type=submit]"), req);

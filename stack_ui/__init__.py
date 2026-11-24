@@ -109,6 +109,8 @@ class UIConfig:
     setup_lock_after: int = 200
     setup_lock_seconds: float = 900.0
     setup_code_relog_seconds: float = 300.0
+    reset_code_ttl: float = 900.0            # a password-reset code is valid this long (one use)
+    reset_code_relog_seconds: float = 30.0   # the same code is written to the log again at most this often
     trust_forwarded_host: bool = False
     auth_path: str | None = None  # default DATA_DIR/ui-auth.json
     public_url: str | None = None  # UI_PUBLIC_URL: trusted public address (quick-connect prompt)
@@ -132,6 +134,8 @@ class UIConfig:
             public_url=env_str("UI_PUBLIC_URL"),
             trust_forwarded_host=env_bool("UI_TRUST_FORWARDED_HOST", False),
             setup_code_relog_seconds=env_float("UI_SETUP_CODE_RELOG_SECONDS", 300.0),
+            reset_code_ttl=env_float("UI_RESET_CODE_TTL", 900.0),
+            reset_code_relog_seconds=env_float("UI_RESET_CODE_RELOG_SECONDS", 30.0),
         )
 
 
@@ -202,6 +206,12 @@ class UIRuntime:
         self.setup_limiter = FailLimiter(config.setup_fail_limit, config.setup_fail_window)
         self.setup_failures = 0
         self.setup_locked_until = 0.0
+        self.reset_limiter = FailLimiter(config.setup_fail_limit, config.setup_fail_window)
+        self.reset_failures = 0
+        self.reset_locked_until = 0.0
+        self.reset_code: str | None = None
+        self.reset_expires = 0.0
+        self.reset_logged_at = 0.0  # time.monotonic() of the last log line with the reset code
         self.revoked: dict[str, float] = {}
         self.started = time.time()
         self.store = AuthStore(config.auth_path)
@@ -298,6 +308,40 @@ class UIRuntime:
         log.warning("Kurulum kodu / setup code: %s (kurulum sayfası açıldı / setup page opened)",
                     self.setup_code, extra={REVEAL_ATTR: True})
         return True
+
+    # -- forgotten password: a one-time code that only the service log shows
+    @property
+    def reset_available(self) -> bool:
+        """A stored (UI-set) password can be reset with a log code; a UI_PASSWORD password only changes in the environment."""
+        return self.uses_password and self.password_source == "stored" and not self.disabled_reason
+
+    def issue_reset_code(self) -> bool:
+        """Make sure a valid reset code exists and that it is in the log. A still-valid code is never replaced (an
+        outsider opening the page cannot rotate it), only written again at most every ``reset_code_relog_seconds``.
+        Returns True when a line was written."""
+        if not self.reset_available:
+            return False
+        now_wall, now = time.time(), time.monotonic()
+        if self.reset_code and now_wall < self.reset_expires:
+            if now - self.reset_logged_at < self.config.reset_code_relog_seconds:
+                return False
+            self.reset_logged_at = now
+            log.warning("Parola sıfırlama kodu / password reset code: %s (sıfırlama sayfası açıldı / reset page opened; "
+                        "geçerli: %d dk)", self.reset_code, max(1, int((self.reset_expires - now_wall) // 60)),
+                        extra={REVEAL_ATTR: True})
+            return True
+        self.reset_code = new_setup_code()
+        self.reset_expires = now_wall + self.config.reset_code_ttl
+        self.reset_logged_at = now
+        register_secret(self.reset_code)
+        log.warning("Parola sıfırlama kodu / password reset code (one-time, %d min): %s",
+                    max(1, int(self.config.reset_code_ttl // 60)), self.reset_code, extra={REVEAL_ATTR: True})
+        return True
+
+    def check_reset_code(self, code: Any) -> bool:
+        if not self.reset_code or time.time() >= self.reset_expires:
+            return False
+        return _same(normalize_code(code), normalize_code(self.reset_code))
 
     def check_setup_code(self, code: Any) -> bool:
         if not self.setup_code:
@@ -1036,9 +1080,11 @@ def mount_ui(
         elif runtime.password_source == "env":
             hint = "Parola sunucudaki UI_PASSWORD ortam değişkenidir. / The password is the UI_PASSWORD env var."
         else:
-            hint = ("Parola ilk kurulumda belirlendi. Unuttuysanız DATA_DIR/ui-auth.json dosyasını silip servisi "
-                    "yeniden başlatın. / Set during first-time setup; to reset delete DATA_DIR/ui-auth.json and restart.")
-        page = (ASSETS_DIR / "login.html").read_text(encoding="utf-8").replace("{{hint}}", html.escape(hint))
+            hint = ("Parola ilk kurulumda belirlendi. / The password was set during first-time setup.")
+        forgot = ('<p class="hint t-center"><a href="/ui/reset">Parolamı unuttum / Forgot my password</a></p>'
+                  if runtime.reset_available else "")
+        page = ((ASSETS_DIR / "login.html").read_text(encoding="utf-8").replace("{{hint}}", html.escape(hint))
+                .replace("{{forgot}}", forgot))
         response = Response(page, media_type="text/html; charset=utf-8", headers={"Cache-Control": "no-store"})
         _set_csrf_cookie(request, response)
         return response
@@ -1162,6 +1208,80 @@ def mount_ui(
         runtime.store.set_password(password, actor="setup")
         runtime.setup_code = None  # single use
         log.warning("admin UI first-time setup completed; the setup code is no longer valid")
+        target = safe_next(data.get("next") if isinstance(data.get("next"), str) else None)
+        response: Response = (JSONResponse({"ok": True, "next": target}) if is_json
+                              else RedirectResponse(target, status_code=303))
+        session_cookie(request, response)
+        return response
+
+    # -- forgotten password (password modes with a password set in the UI)
+    @app.get("/ui/reset", include_in_schema=False)
+    async def reset_page(request: Request):
+        if not runtime.uses_password or runtime.disabled_reason:
+            return RedirectResponse("/ui/", status_code=303)
+        if runtime.setup_required:
+            return RedirectResponse("/ui/setup", status_code=303)
+        if not runtime.reset_available:
+            return _message_page(runtime.title, "Parola ortamdan geliyor / The password is set in the environment",
+                                 "Bu parola sunucudaki UI_PASSWORD ortam değişkenidir; orada değiştirip servisi yeniden "
+                                 "başlatın. / It is the UI_PASSWORD environment variable: change it there and restart.", 409)
+        runtime.issue_reset_code()  # the code goes to the log only, never into this page
+        page = (ASSETS_DIR / "reset.html").read_text(encoding="utf-8")
+        response = Response(page, media_type="text/html; charset=utf-8", headers={"Cache-Control": "no-store"})
+        _set_csrf_cookie(request, response)
+        return response
+
+    @app.post("/ui/reset", include_in_schema=False)
+    async def reset(request: Request):
+        is_json = (request.headers.get("content-type") or "").startswith("application/json")
+
+        def fail(status: int, code: str, message: str, headers: dict | None = None) -> Response:
+            if is_json:
+                return JSONResponse({"ok": False, "error": {"code": code, "message": message}},
+                                    status_code=status, headers=headers)
+            return RedirectResponse(f"/ui/reset?error={code}", status_code=303)
+
+        if not runtime.reset_available:
+            return fail(409, "reset_unavailable", "password reset is not available (UI_PASSWORD, no password yet or not a password mode)")
+        if not runtime.origin_ok(request):
+            return fail(403, "csrf_failed", "cross-origin request refused")
+        if (wait := runtime.reset_locked_until - time.time()) > 0:
+            return fail(423, "reset_locked", "too many wrong reset codes; try again later",
+                        {"Retry-After": str(int(wait) + 1)})
+        key = client_key(request)
+        if wait := runtime.reset_limiter.retry_after(key):
+            return fail(429, "rate_limited", "too many attempts; try again later", {"Retry-After": str(wait)})
+        raw = await request.body()
+        if len(raw) > 4096:
+            return fail(413, "payload_too_large", "body too large")
+        try:
+            if is_json:
+                data = json.loads(raw or b"{}")
+                data = data if isinstance(data, dict) else {}
+            else:
+                data = {k: v[0] for k, v in parse_qs(raw.decode("utf-8", "replace")).items()}
+        except (ValueError, RecursionError):
+            data = {}
+        if not runtime.check_reset_code(data.get("code")):
+            runtime.reset_limiter.fail(key)
+            runtime.reset_failures += 1
+            log.warning("admin UI password reset: wrong or expired reset code (%d/%d)", runtime.reset_failures,
+                        config.setup_lock_after)
+            if runtime.reset_failures >= config.setup_lock_after:
+                runtime.reset_locked_until = time.time() + config.setup_lock_seconds
+                runtime.reset_failures = 0
+                runtime.reset_code = None  # a locked-out guesser gets a fresh code next time
+                log.error("admin UI password reset locked for %ds after too many wrong codes", int(config.setup_lock_seconds))
+            return fail(401, "invalid_reset_code", "wrong or expired reset code")
+        password = data.get("password")
+        if data.get("password2") is not None and data.get("password2") != password:
+            return fail(422, "password_mismatch", "passwords do not match")
+        if (problem := password_problem(password)) is not None:
+            return fail(422, "weak_password", problem)  # the code stays valid: fix the password and try again
+        runtime.store.set_password(password, actor="reset-code")  # bumps the session version: every old session is out
+        runtime.reset_code = None  # single use
+        runtime.reset_failures = 0
+        log.warning("admin UI password was reset with a reset code; all earlier sessions were signed out")
         target = safe_next(data.get("next") if isinstance(data.get("next"), str) else None)
         response: Response = (JSONResponse({"ok": True, "next": target}) if is_json
                               else RedirectResponse(target, status_code=303))

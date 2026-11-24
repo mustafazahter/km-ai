@@ -50,7 +50,7 @@ Varsayılan `komuta.yaml` iki kapı kurar:
 
 Neden iki kapı: uygulama Komuta kimliğine (JWT) varsayılan olarak yalnız bir ek kapı olarak bakar; panel kendi parolasıyla da korunur. Manifestte `forwardIdentity: true` olduğu için `UI_AUTH=auto` ile Komuta kimliği varken parola sorulmaz, yoksa parola istenir (`UI_AUTH=komuta`: yalnız Komuta kimliği). Yol kuralı ve kimlik iletme manifestte yazılabilir; dış çağıranlar (n8n, MCP, webhook) `/ui` dışında kaldıkları için kapıda takılmaz.
 
-Parolayı unuttunuz: servisi durdurun, `/data/ui-auth.json` dosyasını silin, başlatın → günlükte yeni kurulum kodu.
+Parolayı unuttunuz: giriş sayfasında **Parolamı unuttum**'a basın (`/ui/reset`). Servis günlüğüne (Komuta konsolu → Loglar, `sıfırlama` diye aratın) tek kullanımlık, 15 dakika geçerli bir kod yazılır; kodu ve yeni parolayı girin, kaydedince tüm eski oturumlar kapanır. Parola `UI_PASSWORD` ortam değişkeninden geliyorsa orada değiştirin.
 
 ## 3. Kurulum sihirbazı
 
