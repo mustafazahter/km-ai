@@ -56,6 +56,26 @@ CREATE TABLE IF NOT EXISTS schedules (
 );
 CREATE INDEX IF NOT EXISTS schedules_due ON schedules(active, next_run);
 
+CREATE TABLE IF NOT EXISTS panel_conversations (
+    id TEXT PRIMARY KEY,
+    owner TEXT NOT NULL,
+    title TEXT NOT NULL,
+    model TEXT NOT NULL DEFAULT '',
+    chat_id INTEGER NOT NULL DEFAULT 0,
+    tainted INTEGER NOT NULL DEFAULT 0,
+    created REAL NOT NULL,
+    updated REAL NOT NULL
+);
+CREATE INDEX IF NOT EXISTS panel_conversations_owner ON panel_conversations(owner, updated);
+CREATE TABLE IF NOT EXISTS panel_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    conv_id TEXT NOT NULL,
+    role TEXT NOT NULL,
+    content TEXT NOT NULL,
+    ts REAL NOT NULL
+);
+CREATE INDEX IF NOT EXISTS panel_messages_conv ON panel_messages(conv_id, id);
+
 CREATE TABLE IF NOT EXISTS chat_settings (
     chat_id INTEGER NOT NULL,
     key TEXT NOT NULL,
@@ -134,6 +154,87 @@ class Database:
     def _exec(self, sql: str, params: tuple = ()) -> sqlite3.Cursor:
         with self._lock:
             return self._conn.execute(sql, params)
+
+    # ------------------------------------------------------------------ panel conversations
+    # The admin panel's own chats (kept apart from the channel histories above). Plain user/assistant text only.
+    def panel_create(self, conv_id: str, owner: str, title: str, model: str, chat_id: int) -> None:
+        now = time.time()
+        with self._lock:
+            self._conn.execute("INSERT INTO panel_conversations(id, owner, title, model, chat_id, tainted, created, updated) "
+                               "VALUES (?,?,?,?,?,0,?,?)", (conv_id, owner, title, model, chat_id, now, now))
+
+    def panel_get(self, conv_id: str, owner: str) -> dict[str, Any] | None:
+        return self._one("SELECT * FROM panel_conversations WHERE id=? AND owner=?", (conv_id, owner))
+
+    def panel_list(self, owner: str, limit: int = 100) -> list[dict[str, Any]]:
+        return self._all(
+            "SELECT c.id, c.title, c.model, c.updated, c.created, "
+            "(SELECT COUNT(*) FROM panel_messages m WHERE m.conv_id = c.id) AS messages "
+            "FROM panel_conversations c WHERE c.owner=? ORDER BY c.updated DESC LIMIT ?", (owner, limit))
+
+    def panel_messages(self, conv_id: str, limit: int | None = None) -> list[dict[str, Any]]:
+        if limit:
+            rows = self._all("SELECT role, content, ts FROM panel_messages WHERE conv_id=? ORDER BY id DESC LIMIT ?", (conv_id, limit))
+            return rows[::-1]
+        return self._all("SELECT role, content, ts FROM panel_messages WHERE conv_id=? ORDER BY id", (conv_id,))
+
+    def panel_add_turn(self, conv_id: str, user_text: str, answer: str, model: str, tainted: bool, keep: int) -> None:
+        """One finished turn: the question, the answer, and the conversation's bookkeeping, in one transaction."""
+        now = time.time()
+        with self._lock:
+            c = self._conn
+            c.execute("BEGIN")
+            try:
+                c.execute("INSERT INTO panel_messages(conv_id, role, content, ts) VALUES (?,?,?,?)", (conv_id, "user", user_text, now))
+                c.execute("INSERT INTO panel_messages(conv_id, role, content, ts) VALUES (?,?,?,?)", (conv_id, "assistant", answer, now))
+                c.execute("DELETE FROM panel_messages WHERE conv_id=? AND id NOT IN "
+                          "(SELECT id FROM panel_messages WHERE conv_id=? ORDER BY id DESC LIMIT ?)", (conv_id, conv_id, keep))
+                c.execute("UPDATE panel_conversations SET updated=?, model=?, tainted=MAX(tainted, ?) WHERE id=?",
+                          (now, model, 1 if tainted else 0, conv_id))
+                c.execute("COMMIT")
+            except Exception:
+                c.execute("ROLLBACK")
+                raise
+
+    def _atomic(self, statements: list[tuple[str, tuple]]) -> None:
+        with self._lock:
+            c = self._conn
+            c.execute("BEGIN")
+            try:
+                for sql, params in statements:
+                    c.execute(sql, params)
+                c.execute("COMMIT")
+            except Exception:
+                c.execute("ROLLBACK")
+                raise
+
+    def panel_delete(self, conv_id: str, owner: str) -> bool:
+        with self._lock:
+            if not self._one("SELECT 1 AS x FROM panel_conversations WHERE id=? AND owner=?", (conv_id, owner)):
+                return False
+            self._atomic([("DELETE FROM panel_messages WHERE conv_id=?", (conv_id,)),
+                          ("DELETE FROM panel_conversations WHERE id=?", (conv_id,))])
+            return True
+
+    def panel_delete_all(self, owner: str) -> int:
+        with self._lock:
+            ids = [r["id"] for r in self._all("SELECT id FROM panel_conversations WHERE owner=?", (owner,))]
+            stmts: list[tuple[str, tuple]] = [("DELETE FROM panel_messages WHERE conv_id=?", (cid,)) for cid in ids]
+            stmts.append(("DELETE FROM panel_conversations WHERE owner=?", (owner,)))
+            self._atomic(stmts)
+            return len(ids)
+
+    def panel_prune(self, owner: str, keep: int) -> int:
+        """Keep the newest ``keep`` conversations of ``owner``; returns how many were dropped."""
+        with self._lock:
+            old = [r["id"] for r in self._all("SELECT id FROM panel_conversations WHERE owner=? ORDER BY updated DESC LIMIT -1 OFFSET ?", (owner, keep))]
+            stmts: list[tuple[str, tuple]] = []
+            for cid in old:
+                stmts.append(("DELETE FROM panel_messages WHERE conv_id=?", (cid,)))
+                stmts.append(("DELETE FROM panel_conversations WHERE id=?", (cid,)))
+            if stmts:
+                self._atomic(stmts)
+            return len(old)
 
     # ------------------------------------------------------------------ history
     def add_history(self, chat_id: int, role: str, content: str, keep: int) -> None:

@@ -3,8 +3,9 @@
 Same agent, same safety rules as Telegram (tools needing a human are confirmed here, in the browser;
 web content taints the turn; scheduled-only restrictions untouched). Differences:
 
-* history is kept by the browser (plain user/assistant text, sent with each message), nothing is stored
-  on the server and the Telegram chat history is never touched;
+* conversations are stored on the server (``panel_conversations`` / ``panel_messages``: plain user and assistant
+  text only, secrets redacted, bound to the signed-in admin) so they can be reopened and deleted; they are kept
+  apart from the Telegram and channel histories, which are never touched;
 * a turn runs in the background and the page polls ``/chat/turn/{id}`` (works behind any proxy);
 * a confirmation is a pending future answered by ``POST /chat/confirm`` (120 s, then it counts as "no").
 """
@@ -41,6 +42,23 @@ MAX_PREVIEW = 4000  # a confirmation card shows everything or the action is refu
 KEEP_TURNS = 20
 TURN_TTL = 900
 MODEL_RE = re.compile(r"[^\s]{1,200}")
+# well-known key shapes (a subset of memory.BLOCK_PATTERNS: the broad word-based ones would mangle normal chat)
+SECRET_SHAPES = [re.compile(p) for p in (
+    r"\b\d{8,10}:[A-Za-z0-9_-]{35}\b", r"\bsk-[A-Za-z0-9_-]{16,}", r"\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{20,}|\bgithub_pat_[A-Za-z0-9_]{20,}",
+    r"\bAKIA[0-9A-Z]{16}\b", r"\bxox[abprs]-[A-Za-z0-9-]{10,}", r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(?:-----END [A-Z ]*PRIVATE KEY-----|$)",
+    r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}", r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]{20,}")]
+MAX_CONVERSATIONS = 200      # per admin; the oldest are dropped
+MAX_STORED_MESSAGES = 400    # per conversation
+MAX_STORED_CHARS = 32000     # per stored message
+CONV_ID_RE = re.compile(r"[A-Za-z0-9_-]{6,40}")
+
+
+def scrub(text: str) -> str:
+    """Registered secrets are masked by redact(); also mask well-known key shapes someone pasted or a tool echoed."""
+    out = redact(text)
+    for pattern in SECRET_SHAPES:
+        out = pattern.sub("[maskelendi]", out)
+    return out[:MAX_STORED_CHARS]
 
 
 @dataclass
@@ -57,6 +75,10 @@ class ChatTurn:
     pending: asyncio.Future | None = None
     pending_id: str | None = None
     tainted: bool = False
+    conversation: str = ""
+    new_conversation: bool = False
+    store: bool = True      # False while the panel protection is off (everybody would share one history)
+    stored: bool = False
 
     def emit(self, event: dict) -> None:
         self.events.append({"i": len(self.events), "t": time.time(), **event})
@@ -95,7 +117,33 @@ def build_router(panel: "Panel", err, body_of) -> APIRouter:
             return rid
         return allowed[0] if allowed else 0
 
+    def title_of(text: str) -> str:
+        one = " ".join(text.split())
+        return (one[:57] + "...") if len(one) > 60 else one
+
+    def persist(turn: ChatTurn, chat_id: int, text: str) -> None:
+        """Store the finished turn. A conversation deleted while the turn ran is not brought back."""
+        if not turn.store or not turn.answer or not turn.conversation:
+            return
+        try:
+            exists = ai.db.panel_get(turn.conversation, turn.user) is not None
+            if not exists:
+                if not turn.new_conversation:
+                    return  # it was deleted meanwhile
+                ai.db.panel_create(turn.conversation, turn.user, title_of(scrub(text)) or "Sohbet", turn.model, chat_id)
+                ai.db.panel_prune(turn.user, MAX_CONVERSATIONS)
+            ai.db.panel_add_turn(turn.conversation, scrub(text), scrub(turn.answer), turn.model, turn.tainted, MAX_STORED_MESSAGES)
+            turn.stored = True
+        except Exception:  # noqa: BLE001 - a storage problem must not lose the answer the user is waiting for
+            log.exception("panel chat turn could not be stored")
+            if turn.new_conversation:
+                try:
+                    ai.db.panel_delete(turn.conversation, turn.user)  # no empty shell in the list
+                except Exception:  # noqa: BLE001
+                    log.exception("panel chat leftover could not be removed")
+
     async def run_turn(turn: ChatTurn, chat_id: int, text: str, history: list[dict], model: str, tainted: bool) -> None:
+        turn.tainted = tainted  # a conversation that started tainted is stored as tainted
         async def confirmer(_chat: int, tool_name: str, preview: Any) -> bool:
             shown = _text(preview)
             if len(shown) > MAX_PREVIEW:
@@ -133,6 +181,7 @@ def build_router(panel: "Panel", err, body_of) -> APIRouter:
             finally:
                 lock.release()
             turn.status = "done"
+            persist(turn, chat_id, text)
         except LLMError as exc:
             from .providers import friendly_error, resolve_provider
             s_ = ai.settings
@@ -168,17 +217,35 @@ def build_router(panel: "Panel", err, body_of) -> APIRouter:
         model = data.get("model") or ai.settings.llm_model
         if not isinstance(model, str) or not MODEL_RE.fullmatch(model):
             raise err(422, "invalid_value", "model: invalid name")
-        hist = data.get("history") or []
-        if not isinstance(hist, list):
-            raise err(422, "invalid_value", "history: list expected")
-        history = [{"role": m.get("role"), "content": m.get("content")[:MAX_MESSAGE]} for m in hist[-MAX_HISTORY:]
-                   if isinstance(m, dict) and m.get("role") in ("user", "assistant") and isinstance(m.get("content"), str)]
-        chat_id = chat_for(data.get("chat_id"))
-        tainted = data.get("tainted") is True  # the browser says earlier answers used outside content
+        conv_id = data.get("conversation")
+        conv: dict | None = None
+        if conv_id not in (None, "") and history_off(user):
+            raise err(404, "not_found", "Sohbet bulunamadı.")
+        if conv_id not in (None, ""):
+            if not isinstance(conv_id, str) or not CONV_ID_RE.fullmatch(conv_id):
+                raise err(422, "invalid_value", "conversation: invalid id")
+            conv = ai.db.panel_get(conv_id, user.label)
+            if conv is None:  # same answer for "missing" and "someone else's"
+                raise err(404, "not_found", "Sohbet bulunamadı.")
+            if any(t.status == "running" and t.conversation == conv_id for t in turns.values()):
+                raise err(409, "busy", "Bu sohbette bir yanıt hâlâ hazırlanıyor.")
+        if conv:  # a stored conversation is the source of truth for its context
+            history = [{"role": m["role"], "content": m["content"][:MAX_MESSAGE]} for m in ai.db.panel_messages(conv["id"], MAX_HISTORY)]
+        else:     # a new one may bring plain user/assistant context along (anything else is dropped)
+            hist = data.get("history") or []
+            if not isinstance(hist, list):
+                raise err(422, "invalid_value", "history: list expected")
+            history = [{"role": m.get("role"), "content": m.get("content")[:MAX_MESSAGE]} for m in hist[-MAX_HISTORY:]
+                       if isinstance(m, dict) and m.get("role") in ("user", "assistant") and isinstance(m.get("content"), str)]
+        chat_id = chat_for(data.get("chat_id") if conv is None else (data.get("chat_id") or conv.get("chat_id") or None))
+        # outside content was read earlier in this conversation (stored) or the browser says so: the stricter rules apply
+        tainted = bool(conv and conv.get("tainted")) or data.get("tainted") is True
         prune()
         if sum(1 for t in turns.values() if t.status == "running") >= MAX_RUNNING:
             raise err(429, "busy", "Çok fazla etkin sohbet turu var; biri bitince tekrar deneyin.")
-        turn = ChatTurn(id=secrets.token_urlsafe(10), user=user.label, model=model)
+        turn = ChatTurn(id=secrets.token_urlsafe(10), user=user.label, model=model,
+                        conversation=conv["id"] if conv else secrets.token_urlsafe(9), new_conversation=conv is None,
+                        store=not history_off(user))
         turns[turn.id] = turn
         turn.task = asyncio.create_task(run_turn(turn, chat_id, text.strip(), history, model, tainted))
         return {"ok": True, "turn": turn.id}
@@ -188,7 +255,8 @@ def build_router(panel: "Panel", err, body_of) -> APIRouter:
         turn = owned(turn_id, user)
         since = max(0, min(since, len(turn.events)))
         return {"ok": True, "status": turn.status, "events": turn.events[since:], "next": len(turn.events),
-                "answer": turn.answer, "error": turn.error, "model": turn.model, "tainted": turn.tainted}
+                "answer": turn.answer, "error": turn.error, "model": turn.model, "tainted": turn.tainted,
+                "conversation": turn.conversation if turn.stored else ""}
 
     @r.post("/chat/confirm")
     async def confirm(request: Request, user: UIUser = Depends(current_user)):
@@ -211,6 +279,50 @@ def build_router(panel: "Panel", err, body_of) -> APIRouter:
         if turn.task is not None and not turn.task.done():
             turn.task.cancel()
         return {"ok": True}
+
+    # ------------------------------------------------------------ stored conversations
+    def history_off(user: UIUser) -> bool:
+        """With the panel protection switched off every visitor is the same 'user': nothing is kept or listed."""
+        return user.method == "unprotected"
+
+    @r.get("/chat/conversations")
+    async def conversations(user: UIUser = Depends(current_user)):
+        if history_off(user):
+            return {"ok": True, "items": [], "disabled": True}
+        items = ai.db.panel_list(user.label, MAX_CONVERSATIONS)
+        return {"ok": True, "items": [{"id": c["id"], "title": c["title"], "model": c["model"], "updated": c["updated"],
+                                       "messages": c["messages"]} for c in items]}
+
+    @r.get("/chat/conversations/{conv_id}")
+    async def conversation(conv_id: str, user: UIUser = Depends(current_user)):
+        conv = ai.db.panel_get(conv_id, user.label) if CONV_ID_RE.fullmatch(conv_id) and not history_off(user) else None
+        if conv is None:
+            raise err(404, "not_found", "Sohbet bulunamadı.")
+        return {"ok": True, "id": conv["id"], "title": conv["title"], "model": conv["model"], "chat_id": conv["chat_id"],
+                "tainted": bool(conv["tainted"]), "updated": conv["updated"],
+                "messages": [{"role": m["role"], "content": m["content"], "ts": m["ts"]} for m in ai.db.panel_messages(conv["id"])]}
+
+    @r.delete("/chat/conversations/{conv_id}")
+    async def delete_conversation(conv_id: str, user: UIUser = Depends(current_user)):
+        if history_off(user) or not CONV_ID_RE.fullmatch(conv_id) or ai.db.panel_get(conv_id, user.label) is None:
+            raise err(404, "not_found", "Sohbet bulunamadı.")
+        for t in turns.values():  # a reply still being written for it is stopped, not stored
+            if t.conversation == conv_id and t.user == user.label and t.task is not None and not t.task.done():
+                t.task.cancel()
+        ai.db.panel_delete(conv_id, user.label)
+        log.info("panel conversation deleted by %s", user.label)
+        return {"ok": True}
+
+    @r.delete("/chat/conversations")
+    async def delete_all_conversations(user: UIUser = Depends(current_user)):
+        if history_off(user):
+            return {"ok": True, "deleted": 0}
+        for t in turns.values():
+            if t.user == user.label and t.task is not None and not t.task.done():
+                t.task.cancel()
+        n = ai.db.panel_delete_all(user.label)
+        log.info("%s panel conversations deleted by %s", n, user.label)
+        return {"ok": True, "deleted": n}
 
     return r
 

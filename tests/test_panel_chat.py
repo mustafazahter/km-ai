@@ -208,3 +208,130 @@ def test_taint_flag_reaches_the_agent(tmp_path):
             time.sleep(0.03)
         assert "confirm" in kinds
         assert e.ai.db.count_all_memories() == 0  # refused: nothing stored
+
+
+# ------------------------------------------------------------------ stored conversations
+
+
+def say(c, text, conversation=None, **extra):
+    body = {"message": text, **extra}
+    if conversation:
+        body["conversation"] = conversation
+    r = c.post("/ui/api/chat/send", json=body)
+    assert r.status_code == 200, r.text
+    done, _ = wait(c, r.json()["turn"])
+    return done
+
+
+def test_conversation_is_stored_reopened_with_context_and_deleted(tmp_path):
+    e = Env(tmp_path, llm_script=[reply("Merhaba Deniz"), reply("Adın Deniz.")])
+    with session(e) as c:
+        assert c.get("/ui/api/chat/conversations").json()["items"] == []
+        first = say(c, "Merhaba, adım Deniz")
+        conv = first["conversation"]
+        assert first["status"] == "done" and conv
+        items = c.get("/ui/api/chat/conversations").json()["items"]
+        assert [i["id"] for i in items] == [conv] and items[0]["title"] == "Merhaba, adım Deniz" and items[0]["messages"] == 2
+        # the same conversation continues with its stored context (the browser sends none)
+        second = say(c, "Adım neydi?", conversation=conv)
+        assert second["conversation"] == conv
+        roles = [m["role"] for m in e.llm.requests[-1]["messages"]]
+        assert roles == ["system", "user", "assistant", "user"]
+        opened = c.get(f"/ui/api/chat/conversations/{conv}").json()
+        assert [m["role"] for m in opened["messages"]] == ["user", "assistant", "user", "assistant"]
+        assert opened["messages"][-1]["content"] == "Adın Deniz." and opened["title"] == "Merhaba, adım Deniz"
+        assert e.ai.db.get_history(CHAT, 10) == []  # channel histories untouched
+        assert c.delete(f"/ui/api/chat/conversations/{conv}").status_code == 200
+        assert c.get("/ui/api/chat/conversations").json()["items"] == []
+        assert c.get(f"/ui/api/chat/conversations/{conv}").status_code == 404
+        assert c.delete(f"/ui/api/chat/conversations/{conv}").status_code == 404
+
+
+def test_conversations_are_private_to_their_owner_and_ids_are_validated(tmp_path):
+    e = Env(tmp_path)
+    e.ai.db.panel_create("someone_elses_chat", "baska-yonetici", "Gizli", "m", 0)
+    e.ai.db.panel_add_turn("someone_elses_chat", "gizli soru", "gizli cevap", "m", False, 50)
+    with session(e) as c:
+        assert c.get("/ui/api/chat/conversations").json()["items"] == []  # not listed
+        assert c.get("/ui/api/chat/conversations/someone_elses_chat").status_code == 404
+        assert c.delete("/ui/api/chat/conversations/someone_elses_chat").status_code == 404
+        assert c.post("/ui/api/chat/send", json={"message": "x", "conversation": "someone_elses_chat"}).status_code == 404
+        assert c.post("/ui/api/chat/send", json={"message": "x", "conversation": "../etc"}).status_code == 422
+        assert c.delete("/ui/api/chat/conversations").json()["deleted"] == 0
+    assert e.ai.db.panel_get("someone_elses_chat", "baska-yonetici") is not None  # still there
+    with session(e, login=False) as anon:
+        assert anon.get("/ui/api/chat/conversations").status_code == 401
+
+
+def test_failed_turn_is_not_stored_and_secrets_are_redacted(tmp_path):
+    from stack_kit import register_secret
+    secret = "sk-test-secret-value-0123456789abcdef"
+    register_secret(secret)
+    e = Env(tmp_path, llm_script=[500, 500, 500, 500, reply("Tamam")])
+    with session(e) as c:
+        bad = say(c, "bu başarısız olacak")
+        assert bad["status"] == "error"
+        assert c.get("/ui/api/chat/conversations").json()["items"] == []  # nothing half-stored
+        e.llm.script = [reply(f"anahtarın {secret}")]
+        ok = say(c, f"anahtarım {secret}")
+        conv = c.get(f"/ui/api/chat/conversations/{ok['conversation']}").json()
+        stored = " ".join(m["content"] for m in conv["messages"]) + conv["title"]
+        assert secret not in stored
+
+
+def test_taint_is_kept_with_the_stored_conversation(tmp_path):
+    e = Env(tmp_path, llm_script=[reply("tamam"), reply("tamam 2")])
+    with session(e) as c:
+        first = say(c, "web'den okudum", tainted=True)
+        conv = c.get(f"/ui/api/chat/conversations/{first['conversation']}").json()
+        assert conv["tainted"] is True
+        say(c, "devam", conversation=first["conversation"])  # the browser says nothing, the server remembers
+
+
+def test_old_conversations_are_dropped_beyond_the_limit_and_all_can_be_deleted(tmp_path, monkeypatch):
+    from ai_bot import panel_chat
+    monkeypatch.setattr(panel_chat, "MAX_CONVERSATIONS", 2)
+    e = Env(tmp_path, llm_script=[reply("1"), reply("2"), reply("3")])
+    with session(e) as c:
+        ids = [say(c, f"soru {i}")["conversation"] for i in range(3)]
+        listed = [i["id"] for i in c.get("/ui/api/chat/conversations").json()["items"]]
+        assert len(listed) == 2 and ids[0] not in listed and ids[2] in listed
+        assert c.delete("/ui/api/chat/conversations").json()["deleted"] == 2
+        assert c.get("/ui/api/chat/conversations").json()["items"] == []
+    assert e.ai.db._one("SELECT COUNT(*) AS n FROM panel_messages")["n"] == 0  # messages go with their conversation
+
+
+def test_scrub_masks_key_shapes_and_caps_length():
+    from ai_bot import panel_chat
+    for secret in ("sk-abcdefghijklmnopqrstuvwx", "ghp_" + "a" * 30, "AKIA" + "A" * 16, "123456789:" + "A" * 35):
+        assert secret not in panel_chat.scrub(f"anahtar {secret} bitti")
+    assert len(panel_chat.scrub("x" * (panel_chat.MAX_STORED_CHARS + 500))) == panel_chat.MAX_STORED_CHARS
+
+
+def test_storage_failure_keeps_the_answer_but_returns_no_conversation(tmp_path, monkeypatch):
+    e = Env(tmp_path, llm_script=[reply("yine de cevap")])
+    def boom(*a, **k):
+        raise RuntimeError("disk full")
+    monkeypatch.setattr(e.ai.db, "panel_add_turn", boom)
+    with session(e) as c:
+        done = say(c, "merhaba")
+        assert done["status"] == "done" and done["conversation"] == ""
+        assert c.get("/ui/api/chat/conversations").json()["items"] == []  # no empty shell left behind
+
+
+def test_nothing_is_kept_while_the_panel_protection_is_off(tmp_path):
+    from fastapi.testclient import TestClient
+    from tests.test_ui import PASSWORD
+    e = Env(tmp_path, llm_script=[reply("açık panel")])
+    with session(e) as c:
+        r = c.post("/ui/api/auth/protection", json={"enabled": False, "password": PASSWORD, "confirm": "KORUMAYI KAPAT"})
+        assert r.status_code == 200, r.text
+        anon = TestClient(e.app)  # a stranger: no cookie, same running app
+        assert anon.get("/ui/api/me").json()["user"]["method"] == "unprotected"
+        anon.get("/ui/")
+        anon.headers["X-CSRF-Token"] = anon.cookies.get("skui_csrf") or ""
+        done = say(anon, "kim olduğum belli değil")
+        assert done["status"] == "done" and done["conversation"] == ""
+        assert anon.get("/ui/api/chat/conversations").json()["items"] == []
+        assert anon.post("/ui/api/chat/send", json={"message": "x", "conversation": "abcdefghijkl"}).status_code == 404
+    assert e.ai.db._one("SELECT COUNT(*) AS n FROM panel_conversations")["n"] == 0

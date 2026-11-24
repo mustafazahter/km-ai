@@ -1135,7 +1135,19 @@ window.AIB_I18N_EN = {
  "Kanal bu kurulumda yok": "This channel is not part of this install",
  "İzin listesi boş: kimse yazamaz": "The allow-list is empty: nobody can write",
  "Sağlayıcı hata veriyor; ayarları ve Test et'i kontrol edin": "The provider returns an error; check the settings and Test",
- "Kapalı: ayarları girip anahtarı açın": "Off: enter the settings and switch it on"
+ "Kapalı: ayarları girip anahtarı açın": "Off: enter the settings and switch it on",
+ "Geçmiş": "History",
+ "Geçmiş sohbetler": "Past chats",
+ "Sohbet geçmişi": "Chat history",
+ "Henüz kayıtlı sohbet yok.": "No saved chats yet.",
+ "Sohbeti sil": "Delete chat",
+ "Bu sohbet artık yok.": "This chat no longer exists.",
+ "Bu sohbet artık yok; yeni sohbette tekrar gönderin.": "This chat no longer exists; send it again in a new chat.",
+ "Sohbet silinsin mi?": "Delete this chat?",
+ "kalıcı olarak silinir, geri alınamaz.": "is deleted for good and cannot be restored.",
+ "Tüm sohbetler silinsin mi?": "Delete all chats?",
+ "Kayıtlı bütün panel sohbetleri kalıcı olarak silinir, geri alınamaz.": "All saved panel chats are deleted for good and cannot be restored.",
+ "Enter gönderir, Shift+Enter yeni satır. Konuşmalar sunucuda saklanır, Geçmiş'ten açılıp silinebilir; kanal geçmişlerine yazılmaz.": "Enter sends, Shift+Enter adds a new line. Conversations are stored on the server, can be reopened and deleted from History, and are not written to the channel histories."
 };
 window.AIB_I18N_RULES = [
  ["^(.+) üzerinden botunuza yazın ya da panelde Sohbet sayfasından modeli ve araçları deneyin\\.$", "Write to your bot through $1 or try the model and tools from the panel's Chat page."],

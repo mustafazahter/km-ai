@@ -1,6 +1,7 @@
 /* Sohbet: panelden bota yazın, modeli seçin, araçlar çalışsın. Aynı ajan ve aynı güvenlik kuralları;
-   onay gerektiren araçlar burada, tarayıcıda onaylanır. Konuşma geçmişi yalnız bu sekmede (bellekte)
-   tutulur; sunucuya ve kanal geçmişlerine yazılmaz. Metin textContent ile eklenir (innerHTML yok). */
+   onay gerektiren araçlar burada, tarayıcıda onaylanır. Konuşmalar sunucuda saklanır (yalnız düz metin,
+   sırlar maskeli, yönetici başına); listeden açılıp silinebilir, kanal geçmişlerine yazılmaz.
+   Metin textContent ile eklenir (innerHTML yok). */
 (function () {
   "use strict";
   var A = window.AIB, h = A.h;
@@ -10,8 +11,8 @@
     "Yarın sabah 09:00'da bana su içmeyi hatırlat",
     "Komuta cloud platformu hakkında web'de ara ve özetle"
   ];
-  // survives navigation between panel pages, gone on reload (nothing is stored)
-  var store = window.__aibChat = window.__aibChat || { history: [], model: "", chatId: "", entries: [] };
+  // the open conversation survives navigation between panel pages; everything else lives on the server
+  var store = window.__aibChat = window.__aibChat || { history: [], model: "", chatId: "", entries: [], conversation: "", tainted: false };
 
   // ------------------------------------------------------------ tiny, safe markdown (DOM nodes only)
   function inline(text) {
@@ -70,6 +71,13 @@
     var chatSel = h("select", { class: "select chat-select", "aria-label": "Sohbet bağlamı", hidden: true });
     var meta = h("div", { class: "chat-meta small muted" });
     var fresh = A.button("Yeni sohbet", { kind: "ghost", size: "sm", icon: "plus" });
+    var histToggle = A.button("Geçmiş", { kind: "ghost", size: "sm", icon: "list" });
+    histToggle.classList.add("chat-history-toggle");
+    var histList = h("ul", { class: "chat-history-list", "aria-label": "Geçmiş sohbetler" });
+    var histEmpty = h("p", { class: "small muted chat-history-empty", text: "Henüz kayıtlı sohbet yok." });
+    var histClear = A.button("Tümünü sil", { kind: "ghost", size: "sm", icon: "trash" });
+    var history = h("aside", { class: "chat-history", "aria-label": "Sohbet geçmişi" },
+      h("div", { class: "chat-history-head" }, h("strong", { text: "Geçmiş" }), histClear), histEmpty, histList);
 
     var combo = null;
     function buildCombo() {
@@ -108,9 +116,65 @@
       scrollDown();
     }
 
+    // ------------------------------------------------------------ stored conversations
+    var convs = [];
+    function drawHistory() {
+      KUI.clear(histList);
+      histEmpty.hidden = convs.length > 0; histClear.hidden = convs.length === 0;
+      convs.forEach(function (c) {
+        var open = h("button", { type: "button", class: "chat-history-open", "aria-current": c.id === store.conversation ? "true" : null,
+          title: c.title, onclick: function () { openConversation(c.id); } },
+          h("span", { class: "chat-history-title ellipsis", text: c.title }),
+          h("span", { class: "chat-history-time small muted", text: A.relTime(c.updated) }));
+        var del = h("button", { type: "button", class: "btn btn-ghost btn-icon btn-sm chat-history-del", "aria-label": KUI.t("Sohbeti sil") + ": " + c.title,
+          title: KUI.t("Sohbeti sil"), onclick: function () { removeConversation(c); } }, A.icon("trash"));
+        histList.appendChild(h("li", { class: c.id === store.conversation ? "is-active" : null }, open, del));
+      });
+    }
+    function loadHistory() {
+      return KUI.api("/chat/conversations").then(function (r) { convs = r.items || []; drawHistory(); }).catch(function () { /* the chat still works without the list */ });
+    }
+    function startNew() {
+      if (busyTurn) return;
+      store.history = []; store.entries = []; store.tainted = false; store.conversation = "";
+      drawEmpty(); drawHistory(); shell.classList.remove("is-history-open"); input.focus();
+    }
+    function openConversation(id) {
+      if (busyTurn) return;
+      KUI.api("/chat/conversations/" + encodeURIComponent(id)).then(function (c) {
+        store.conversation = c.id; store.tainted = c.tainted === true;
+        store.entries = c.messages.map(function (m) { return { role: m.role, content: m.content }; });
+        store.history = c.messages.map(function (m) { return { role: m.role, content: m.content }; });
+        if (c.model) { store.model = c.model; if (combo) combo.set(c.model); }
+        replay(); drawHistory(); shell.classList.remove("is-history-open"); input.focus();
+      }).catch(function (e) {
+        if (e && e.status === 404 || e && e.code === "not_found") { if (store.conversation === id) startNew(); KUI.toast(KUI.t("Bu sohbet artık yok."), { kind: "danger" }); }
+        else KUI.errorToast(e);
+        loadHistory();
+      });
+    }
+    function removeConversation(c) {
+      if (busyTurn) return;
+      KUI.confirm({ title: KUI.t("Sohbet silinsin mi?"), body: c.title + " " + KUI.t("kalıcı olarak silinir, geri alınamaz."), danger: true, confirmText: KUI.t("Sil") }).then(function (ok) {
+        if (!ok) return;
+        KUI.api("/chat/conversations/" + encodeURIComponent(c.id), { method: "DELETE" }).then(function () {
+          if (store.conversation === c.id) startNew();
+          return loadHistory();
+        }).catch(function (e) { KUI.errorToast(e); loadHistory(); });
+      });
+    }
+    function removeAll() {
+      if (busyTurn) return;
+      KUI.confirm({ title: KUI.t("Tüm sohbetler silinsin mi?"), body: KUI.t("Kayıtlı bütün panel sohbetleri kalıcı olarak silinir, geri alınamaz."), danger: true, confirmText: KUI.t("Hepsini sil") }).then(function (ok) {
+        if (!ok) return;
+        KUI.api("/chat/conversations", { method: "DELETE" }).then(function () { startNew(); return loadHistory(); }).catch(function (e) { KUI.errorToast(e); loadHistory(); });
+      });
+    }
+
     // ------------------------------------------------------------ one turn
     function setBusy(on) {
-      send.hidden = on; stop.hidden = !on; input.disabled = false; fresh.disabled = on;
+      send.hidden = on; stop.hidden = !on; input.disabled = false; fresh.disabled = on; histClear.disabled = on;
+      KUI.$all(".chat-history-open, .chat-history-del", history).forEach(function (b) { b.disabled = on; });
       if (!on) { busyTurn = null; input.focus(); }
     }
     function submit() {
@@ -124,13 +188,23 @@
       var work = h("div", { class: "msg-work", "aria-live": "polite" }, h("span", { class: "typing", "aria-label": "Yanıt hazırlanıyor" }, h("i"), h("i"), h("i")));
       log.appendChild(work); scrollDown();
       setBusy(true);
-      var history = store.history.slice();
-      KUI.api("/chat/send", { method: "POST", body: { message: text, model: combo.value() || undefined, history: history, chat_id: store.chatId || undefined, tainted: store.tainted === true || undefined } })
+      var context = store.conversation ? undefined : store.history.slice();   // a stored conversation brings its own context
+      KUI.api("/chat/send", { method: "POST", body: { message: text, model: combo.value() || undefined, history: context, conversation: store.conversation || undefined, chat_id: store.chatId || undefined, tainted: store.tainted === true || undefined } })
         .then(function (r) {
           busyTurn = r.turn;
           store.history.push({ role: "user", content: text });
           poll(r.turn, 0, work, {});
-        }).catch(function (e) { finish(work, null, e.message); });
+        }).catch(function (e) {
+          if (e && (e.status === 404 || e.code === "not_found") && store.conversation) {
+            // the conversation was deleted elsewhere: forget it, keep the typed text so nothing is lost
+            work.remove(); log.lastChild && log.lastChild.remove(); store.entries.pop();
+            setBusy(false); startNew(); input.value = text; grow();
+            KUI.toast(KUI.t("Bu sohbet artık yok; yeni sohbette tekrar gönderin."), { kind: "danger" });
+            loadHistory();
+            return;
+          }
+          finish(work, null, e.message);
+        });
     }
     function finish(work, answer, error) {
       work.remove();
@@ -197,6 +271,7 @@
           log.insertBefore(trail, work);
         }
         if (r.tainted) store.tainted = true;  // outside content was read: later turns keep the stricter rules
+        if (r.status === "done" && r.conversation) { store.conversation = r.conversation; loadHistory(); }   // stored on the server now
         finish(work, r.status === "done" ? r.answer : null, r.error);
       }).catch(function (e) { finish(work, null, e.message); });
     }
@@ -210,18 +285,22 @@
     stop.addEventListener("click", function () {
       if (busyTurn) KUI.api("/chat/cancel", { method: "POST", body: { turn: busyTurn } }).catch(function () { /* ignore */ });
     });
-    fresh.addEventListener("click", function () { store.history = []; store.entries = []; store.tainted = false; drawEmpty(); input.focus(); });
+    fresh.addEventListener("click", startNew);
+    histToggle.addEventListener("click", function () { var on = shell.classList.toggle("is-history-open"); histToggle.setAttribute("aria-expanded", on ? "true" : "false"); });
+    histClear.addEventListener("click", removeAll);
     chatSel.addEventListener("change", function () { store.chatId = chatSel.value; });
 
     var shell = h("div", { class: "chat" },
       h("div", { class: "chat-bar" },
         h("div", { class: "chat-bar-title" }, h("span", { class: "eyebrow", text: "Bot ile sohbet" }), meta),
-        h("div", { class: "chat-bar-tools" }, chatSel, modelBox, fresh)),
-      log,
-      h("div", { class: "chat-composer" }, h("div", { class: "chat-field" }, input, send, stop),
-        h("p", { class: "hint chat-hint", text: "Enter gönderir, Shift+Enter yeni satır. Konuşma bu sekmede tutulur; kanal geçmişlerine yazılmaz." })));
+        h("div", { class: "chat-bar-tools" }, histToggle, chatSel, modelBox, fresh)),
+      h("div", { class: "chat-body" }, history,
+        h("div", { class: "chat-main" }, log,
+          h("div", { class: "chat-composer" }, h("div", { class: "chat-field" }, input, send, stop),
+            h("p", { class: "hint chat-hint", text: "Enter gönderir, Shift+Enter yeni satır. Konuşmalar sunucuda saklanır, Geçmiş'ten açılıp silinebilir; kanal geçmişlerine yazılmaz." })))));
     main.appendChild(shell);
     drawEmpty();
+    loadHistory();
 
     KUI.api("/chat/info").then(function (d) {
       info = d;
@@ -233,7 +312,7 @@
         if (!store.chatId) store.chatId = String(d.chats[0].id);
       }
       buildCombo();
-      replay();
+      if (store.conversation) openConversation(store.conversation); else replay();
       if (!d.configured) log.appendChild(A.callout("danger", h("span", null, "Yapay zekâ sağlayıcısı henüz ayarlı değil. ", h("a", { href: "#/kurulum/llm", text: "Kurulumu tamamlayın" }), ".")));
       KUI.api("/llm/models", { method: "POST", body: {} }).then(function (r) { models = r.models || []; if (combo) combo.setModels(models, r.recent || []); }).catch(function () { /* manual entry still works */ });
     }).catch(function (e) { log.appendChild(A.errorBox(e)); });

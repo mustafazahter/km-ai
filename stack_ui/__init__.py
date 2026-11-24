@@ -766,7 +766,7 @@ def safe_next(value: str | None) -> str:
     path = value.split("#", 1)[0].split("?", 1)[0]
     if "/../" in path or path.endswith("/..") or "/./" in path or "%2e" in path.lower():
         return "/ui/"
-    if value.startswith("/ui/login") or value.startswith("/ui/logout") or value.startswith("/ui/api/"):
+    if value.startswith(("/ui/login", "/ui/logout", "/ui/setup", "/ui/reset", "/ui/api/")):
         return "/ui/"
     return value
 
@@ -1176,12 +1176,12 @@ def mount_ui(
         if (wait := runtime.setup_locked_until - time.time()) > 0:
             return fail(423, "setup_locked", "too many wrong setup codes; try again later or restart for a new code",
                         {"Retry-After": str(int(wait) + 1)})
+        raw = await request.body()  # read first: no await between the limiter check and recording a failure
+        if len(raw) > 4096:
+            return fail(413, "payload_too_large", "body too large")
         key = client_key(request)
         if wait := runtime.setup_limiter.retry_after(key):
             return fail(429, "rate_limited", "too many attempts; try again later", {"Retry-After": str(wait)})
-        raw = await request.body()
-        if len(raw) > 4096:
-            return fail(413, "payload_too_large", "body too large")
         try:
             if is_json:
                 data = json.loads(raw or b"{}")
@@ -1248,12 +1248,12 @@ def mount_ui(
         if (wait := runtime.reset_locked_until - time.time()) > 0:
             return fail(423, "reset_locked", "too many wrong reset codes; try again later",
                         {"Retry-After": str(int(wait) + 1)})
+        raw = await request.body()  # read first: no await between the limiter check and recording a failure
+        if len(raw) > 4096:
+            return fail(413, "payload_too_large", "body too large")
         key = client_key(request)
         if wait := runtime.reset_limiter.retry_after(key):
             return fail(429, "rate_limited", "too many attempts; try again later", {"Retry-After": str(wait)})
-        raw = await request.body()
-        if len(raw) > 4096:
-            return fail(413, "payload_too_large", "body too large")
         try:
             if is_json:
                 data = json.loads(raw or b"{}")

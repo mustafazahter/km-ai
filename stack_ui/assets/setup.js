@@ -8,7 +8,8 @@
     rate_limited: "Çok fazla deneme. Biraz bekleyin. / Too many attempts.",
     setup_locked: "Kurulum kilitlendi; yeni kod için servisi yeniden başlatın. / Locked: restart for a new code.",
     setup_done: "Kurulum zaten tamam. / Setup already done.",
-    csrf_failed: "İstek reddedildi; sayfayı yenileyin. / Request refused, reload."
+    csrf_failed: "İstek reddedildi; sayfayı yenileyin. / Request refused, reload.",
+    request_failed: "İstek tamamlanamadı. Sayfayı yenileyip tekrar deneyin. / The request failed. Reload the page and try again."
   };
   function show(code, message) {
     // server texts are English-only except the weak-password one; unknown shapes (proxy pages, HTML) still say something
@@ -34,7 +35,8 @@
   }
   document.addEventListener("DOMContentLoaded", function () {
     var params = new URLSearchParams(location.search);
-    if (params.get("error")) show(params.get("error"));
+    var fromAddress = params.get("error");   // only known codes are worded; arbitrary text from a link is never shown
+    if (fromAddress) show(MESSAGES[fromAddress] ? fromAddress : "request_failed");
     document.getElementById("setup-next").value = nextTarget(params);
     var form = document.getElementById("setup-form");
     form.addEventListener("submit", function (e) {
