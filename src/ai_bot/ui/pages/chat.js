@@ -137,7 +137,7 @@
     }
     function drawHistory() {
       KUI.clear(histList);
-      histEmpty.hidden = convs.length > 0; histClear.hidden = convs.length === 0;
+      histEmpty.hidden = convs.length > 0; histClear.parentNode.hidden = convs.length === 0;
       histCount.textContent = convs.length ? String(convs.length) : "";
       var group = null, ul = null;
       convs.forEach(function (c) {
@@ -311,11 +311,27 @@
     });
     fresh.addEventListener("click", startNew);
     freshSide.addEventListener("click", startNew);
-    histToggle.addEventListener("click", function () { var on = shell.classList.toggle("is-history-open"); histToggle.setAttribute("aria-expanded", on ? "true" : "false"); });
+    // wide screens: the list is a side column that can be folded away (remembered); narrow screens: it replaces the log
+    var narrow = window.matchMedia("(max-width: 1100px)");
+    function wantOpen() { try { return window.localStorage.getItem("aib.chat.history") === "open"; } catch (e) { return false; } }
+    function syncToggle() {
+      var open = narrow.matches ? shell.classList.contains("is-history-open") : !shell.classList.contains("is-history-hidden");
+      histToggle.setAttribute("aria-expanded", open ? "true" : "false");
+      histToggle.classList.toggle("is-on", open);
+    }
+    histToggle.addEventListener("click", function () {
+      if (narrow.matches) shell.classList.toggle("is-history-open");
+      else {
+        var open = !shell.classList.toggle("is-history-hidden");
+        try { window.localStorage.setItem("aib.chat.history", open ? "open" : "closed"); } catch (e) { /* the choice just is not remembered */ }
+      }
+      syncToggle();
+    });
+    if (narrow.addEventListener) narrow.addEventListener("change", syncToggle);
     histClear.addEventListener("click", removeAll);
     chatSel.addEventListener("change", function () { store.chatId = chatSel.value; });
 
-    var shell = h("div", { class: "chat" },
+    var shell = h("div", { class: "chat" + (wantOpen() ? "" : " is-history-hidden") },
       h("div", { class: "chat-bar" },
         h("div", { class: "chat-bar-title" }, h("span", { class: "eyebrow", text: "Bot ile sohbet" }), meta),
         h("div", { class: "chat-bar-tools" }, histToggle, chatSel, modelBox, fresh)),
@@ -324,6 +340,7 @@
           h("div", { class: "chat-composer" }, h("div", { class: "chat-field" }, input, send, stop),
             h("p", { class: "hint chat-hint", text: "Enter gönderir, Shift+Enter yeni satır. Konuşmalar sunucuda saklanır, Geçmiş'ten açılıp silinebilir; kanal geçmişlerine yazılmaz." })))));
     main.appendChild(shell);
+    syncToggle();
     drawEmpty();
     loadHistory();
 

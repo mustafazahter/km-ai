@@ -12,7 +12,7 @@
 </head>
 <body data-kui-public>
   <main class="auth">
-    <form class="card auth-card auth-card-setup form" method="post" action="/ui/setup" id="setup-form" novalidate>
+    <form class="card auth-card auth-card-setup auth-card-compact form" method="post" action="/ui/setup" id="setup-form" novalidate>
       <div class="brand">
         <span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="/ui/_kit/icons.svg#shield"/></svg></span>
         <span>
@@ -22,10 +22,9 @@
       </div>
       <ol class="auth-steps">
         <li>Komuta konsolunda servisin <strong>Loglar</strong> sekmesini açın.</li>
-        <li>Arama kutusuna <code>kod</code> yazın ve <code>XXXX-XXXX-XXXX</code> biçimindeki kodu kopyalayın.</li>
-        <li>Kodu ve seçeceğiniz parolayı aşağıya girin.</li>
+        <li>Aramaya <code>kod</code> yazın, <code>XXXX-XXXX-XXXX</code> kodunu kopyalayın.</li>
+        <li>Kodu ve seçeceğiniz parolayı girin.</li>
       </ol>
-      <p class="hint">Kod görünmüyorsa zaman aralığını genişletin veya bu sayfayı yenileyin; kod günlüğe yeniden yazılır. Kod tek kullanımlıktır.</p>
       {{hint}}
       <div class="callout callout-danger" id="setup-error" role="alert" hidden>
         <svg class="icon" aria-hidden="true"><use href="/ui/_kit/icons.svg#alert"/></svg>
@@ -36,15 +35,17 @@
         <label for="code">Kurulum kodu</label>
         <input class="input mono" id="code" name="code" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX" required autofocus>
       </div>
-      <div class="field">
-        <label for="password">Yeni parola</label>
-        <input class="input" id="password" name="password" type="password" autocomplete="new-password" minlength="10" required>
-        <span class="hint">En az 10 karakter; yaygın parolalar kabul edilmez.</span>
+      <div class="field-row">
+        <div class="field">
+          <label for="password">Yeni parola</label>
+          <input class="input" id="password" name="password" type="password" autocomplete="new-password" minlength="10" required>
+        </div>
+        <div class="field">
+          <label for="password2">Parola tekrar</label>
+          <input class="input" id="password2" name="password2" type="password" autocomplete="new-password" required>
+        </div>
       </div>
-      <div class="field">
-        <label for="password2">Parola tekrar</label>
-        <input class="input" id="password2" name="password2" type="password" autocomplete="new-password" required>
-      </div>
+      <p class="hint">En az 10 karakter; yaygın parolalar kabul edilmez. Kod tek kullanımlıktır; görünmüyorsa bu sayfayı yenileyin, kod günlüğe yeniden yazılır.</p>
       <button class="btn btn-primary btn-block" type="submit">
         Parolayı kaydet
         <span class="btn-trail" aria-hidden="true"><svg class="icon"><use href="/ui/_kit/icons.svg#arrow-right"/></svg></span>
