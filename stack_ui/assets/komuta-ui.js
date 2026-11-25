@@ -158,7 +158,7 @@
       var status = el("span", { class: "upd-status", text: "Yeniden bağlanılıyor…" });
       node = el("div", { class: "upd-screen", role: "alert", "aria-live": "assertive" },
         el("div", { class: "upd-card" },
-          el("span", { class: "upd-mark" }, el("span", { class: "upd-orbit" }), markCore()),
+          el("span", { class: "upd-mark", "aria-hidden": "true" }, el("span", { class: "upd-halo" }), el("span", { class: "upd-track" }), el("span", { class: "upd-orbit" }), markCore()),
           el("h2", { text: "Güncelleniyor" }),
           el("p", { text: brand() + " yeni sürüme geçiyor. Birkaç saniye sürer; sayfa hazır olunca kendiliğinden yenilenir." }),
           el("div", { class: "upd-bar", "aria-hidden": "true" }, el("span")),

@@ -821,7 +821,7 @@ def mount_ui(
             (default 440). Served as CSS variables from ``/ui/_kit/auth-vars.css`` (CSP-safe).
         login_hint: replaces the hint under the sign-in form (default depends on where the password comes from).
     Returns the :class:`UIRuntime` (also ``app.state.ui``). Raises ``RuntimeError`` if the app
-    already has a UI (mount once; see "birleşik servis" in docs/UI.md).
+    already has a UI (mount once; see "Combined service" in docs/UI.md).
     """
     if getattr(app.state, "ui", None) is not None:
         raise RuntimeError("mount_ui was already called for this app; mount once and pass every "
